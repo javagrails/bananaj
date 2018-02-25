@@ -63,7 +63,7 @@ public class Campaign extends MailchimpObject {
 		CampaignSettings settings = new CampaignSettings(connection, this.getId(), campaignSettings);
 		
 		if (recipients.has("list_id")) {
-			this.mailChimpList = connection.getList(recipients.getString("list_id"));
+			//this.mailChimpList = connection.getList(recipients.getString("list_id"));
 		}
 		this.REPORTENDPOINT = "https://"+this.connection.getServer()+".api.mailchimp.com/3.0/reports/"+this.getId();
 		this.campaign_type = CampaignType.valueOf(campaignType.toUpperCase());

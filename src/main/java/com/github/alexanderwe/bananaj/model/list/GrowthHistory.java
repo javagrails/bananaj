@@ -5,6 +5,11 @@
 package com.github.alexanderwe.bananaj.model.list;
 
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.github.alexanderwe.bananaj.model.Link;
+
+import java.util.List;
+
 /**
  * Class for representing a growth history of a mailChimpList
  * @author alexanderweiss
@@ -12,71 +17,54 @@ package com.github.alexanderwe.bananaj.model.list;
  */
 public class GrowthHistory {
 
-	private MailChimpList mailChimpList;
+	@JsonProperty
 	private String list_id;
+    @JsonProperty
 	private String month;
+    @JsonProperty
 	private int existing;
+    @JsonProperty
 	private int imports;
-	private int optins;
+    @JsonProperty
+	private List<Link> _links;
 
-	public GrowthHistory(MailChimpList mailChimpList, String month, int existing, int imports, int optins) {
-		this.mailChimpList = mailChimpList;
-		this.list_id = mailChimpList.getId();
-		this.month = month;
-		this.existing = existing;
-		this.imports = imports;
-		this.optins = optins;
-	}
-	
-	/**
-	 * @return the mailChimpList
-	 */
-	public MailChimpList getMailChimpList() {
-		return mailChimpList;
-	}
+    public String getList_id() {
+        return list_id;
+    }
 
-	/**
-	 * @return the list_id
-	 */
-	public String getList_id() {
-		return list_id;
-	}
+    public void setList_id(String list_id) {
+        this.list_id = list_id;
+    }
 
-	/**
-	 * @return the month
-	 */
-	public String getMonth() {
-		return month;
-	}
+    public String getMonth() {
+        return month;
+    }
 
-	/**
-	 * @return the existing
-	 */
-	public int getExisting() {
-		return existing;
-	}
+    public void setMonth(String month) {
+        this.month = month;
+    }
 
-	/**
-	 * @return the imports
-	 */
-	public int getImports() {
-		return imports;
-	}
+    public int getExisting() {
+        return existing;
+    }
 
-	/**
-	 * @return the optins
-	 */
-	public int getOptins() {
-		return optins;
-	}
+    public void setExisting(int existing) {
+        this.existing = existing;
+    }
 
-	@Override
-	public String toString(){
-		return "Growth History for mailChimpList: " + getList_id() + System.lineSeparator() +
-				"Month: " + getMonth() + System.lineSeparator() +
-				"Existing members: " + getExisting() + System.lineSeparator() +
-				"Imported member: " + getImports() + System.lineSeparator() +
-				"Opt-ins: " + getOptins();
-	}
-	
+    public int getImports() {
+        return imports;
+    }
+
+    public void setImports(int imports) {
+        this.imports = imports;
+    }
+
+    public List<Link> get_links() {
+        return _links;
+    }
+
+    public void set_links(List<Link> _links) {
+        this._links = _links;
+    }
 }

@@ -1,59 +1,54 @@
 package com.github.alexanderwe.bananaj.model.list.segment;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.github.alexanderwe.bananaj.connection.MailChimpConnection;
+import com.github.alexanderwe.bananaj.exceptions.MailchimpAPIException;
 import com.github.alexanderwe.bananaj.exceptions.SegmentException;
+import com.github.alexanderwe.bananaj.model.Link;
 import com.github.alexanderwe.bananaj.model.MailchimpObject;
 import com.github.alexanderwe.bananaj.model.list.member.Member;
 import com.github.alexanderwe.bananaj.model.list.member.MemberStatus;
+import com.github.alexanderwe.bananaj.model.list.member.NewMember;
+import com.mashape.unirest.http.HttpResponse;
+import com.mashape.unirest.http.JsonNode;
+import com.mashape.unirest.http.Unirest;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.net.URL;
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 
 /**
  * Created by alexanderweiss on 04.02.16.
  */
 public class Segment extends MailchimpObject {
 
+    @JsonProperty
+    private String id;
+    @JsonProperty
     private String name;
-    private SegmentType type;
-    private String list_id;
-    private LocalDateTime created_at;
-    private LocalDateTime updated_at;
+    @JsonProperty
     private int member_count;
+    @JsonProperty
+    private SegmentType type;
+    @JsonProperty
+    private LocalDateTime created_at;
+    @JsonProperty
+    private LocalDateTime updated_at;
+    @JsonProperty
+    private String list_id;
+    @JsonProperty
+    private List<Link> _links;
+
+
+
     private Options options;
     private MailChimpConnection connection;
-
-    public Segment(int id, String name, String list_id, SegmentType type, LocalDateTime created_at, LocalDateTime updated_at, int member_count, Options options, MailChimpConnection connection, JSONObject jsonRepresentation){
-        super(String.valueOf(id), jsonRepresentation);
-        this.name = name;
-        this.list_id = list_id;
-        this.type = type;
-        this.created_at = created_at;
-        this.updated_at = updated_at;
-        this.member_count = member_count;
-        this.options = options;
-        this.connection = connection;
-    }
-
-    /**
-     * Constructor for static segment - no options field
-     */
-    public Segment(int id, String name, String list_id, SegmentType type, LocalDateTime created_at, LocalDateTime updated_at, int member_count, MailChimpConnection connection, JSONObject jsonRepresentation) {
-        super(String.valueOf(id), jsonRepresentation);
-        this.name = name;
-        this.list_id = list_id;
-        this.type = type;
-        this.created_at = created_at;
-        this.updated_at = updated_at;
-        this.member_count = member_count;
-        this.connection = connection;
-    }
-
 
     /**
      * Used when created a Segment locally with the Builder class
@@ -66,15 +61,27 @@ public class Segment extends MailchimpObject {
     }
 
     /**
-     * Add a member to this segment, only STATIC segments allowed
+     * Add a member to this segment, only NON STATIC segments allowed
      * @param member
      * @throws Exception
      */
-    public void addMember(Member member) throws Exception{
+    public void addMember(NewMember member) throws Exception{
         if (!this.getType().equals(SegmentType.STATIC)){
             throw new SegmentException();
         }
-        getConnection().do_Post(new URL(connection.getListendpoint()+"/"+this.getList_id()+"/segments/"+this.getId()+"/members"),member.getJSONRepresentation().toString(),connection.getApikey());
+
+
+        HttpResponse<JsonNode> postReponse = Unirest.post(this.connection.getListendpoint()+"/"+this.getId()+"/segments/"+this.getId()+"/members")
+                .header("Authorization", this.connection.getApikey())
+                .header("accept", "application/json")
+                .header("Content-Type", "application/json")
+                .body(member)
+                .asJson();
+
+
+        if (postReponse.getStatus()/ 100 != 2) {
+            throw new MailchimpAPIException(postReponse.getBody().getObject());
+        }
     }
 
     /**
@@ -153,12 +160,24 @@ public class Segment extends MailchimpObject {
         return list_id;
     }
 
+
+
     public LocalDateTime getCreated_at() {
         return created_at;
     }
 
+    public void setCreated_at(String created_at){
+        OffsetDateTime offsetDateTime = OffsetDateTime.parse(created_at);
+        this.created_at = offsetDateTime.toLocalDateTime();
+    }
+
     public LocalDateTime getUpdated_at() {
         return updated_at;
+    }
+
+    public void setUpdated_at(String updated_at){
+        OffsetDateTime offsetDateTime = OffsetDateTime.parse(updated_at);
+        this.updated_at = offsetDateTime.toLocalDateTime();
     }
 
     public int getMember_count() {

@@ -1,12 +1,17 @@
 package com.github.alexanderwe.bananaj.connection;
 
 import java.io.File;
+import java.io.IOException;
+import java.lang.reflect.Array;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.github.alexanderwe.bananaj.model.list.MailchimpLists;
+import com.github.alexanderwe.bananaj.model.list.member.MemberStatus;
+import com.mashape.unirest.http.HttpResponse;
+import com.mashape.unirest.http.ObjectMapper;
+import com.mashape.unirest.http.Unirest;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -53,6 +58,7 @@ public class MailChimpConnection extends Connection{
 	private Account account;
 	
 	public MailChimpConnection(String apikey){
+		initUnirest();
 		this.server = apikey.split("-")[1];
 		this.apikey = "apikey "+apikey;
 		this.apiendpoint = "https://"+server+".api.mailchimp.com/3.0/";
@@ -71,6 +77,29 @@ public class MailChimpConnection extends Connection{
 		}
 	}
 
+	private void initUnirest(){
+		Unirest.setObjectMapper(new ObjectMapper() {
+			private com.fasterxml.jackson.databind.ObjectMapper jacksonObjectMapper
+					= new com.fasterxml.jackson.databind.ObjectMapper();
+
+			public <T> T readValue(String value, Class<T> valueType) {
+				try {
+					return jacksonObjectMapper.readValue(value, valueType);
+				} catch (IOException e) {
+					throw new RuntimeException(e);
+				}
+			}
+
+			public String writeValue(Object value) {
+				try {
+					return jacksonObjectMapper.writeValueAsString(value);
+				} catch (JsonProcessingException e) {
+					throw new RuntimeException(e);
+				}
+			}
+		});
+	}
+
 	/**
 	 * Get all lists in your account
 	 * @return Arraylist containing all lists
@@ -80,6 +109,20 @@ public class MailChimpConnection extends Connection{
 		List<MailChimpList> mailChimpLists = new ArrayList<MailChimpList>();
 		// parse response
 		JSONObject jsonLists = new JSONObject(do_Get(new URL(listendpoint),getApikey()));
+
+        HttpResponse<MailchimpLists> mailchimpListsHttpResponse = Unirest.get(this.listendpoint)
+                .header("Authorization", this.apikey)
+                .asObject(MailchimpLists.class);
+        MailchimpLists mailLists = mailchimpListsHttpResponse.getBody();
+
+
+        mailLists.getLists().forEach(list -> {
+            list.setConnection(this);
+        });
+
+        mailLists.getLists().get(0).getSegments();
+
+
 		JSONArray listsArray = jsonLists.getJSONArray("lists");
 		for( int i = 0; i< listsArray.length();i++)
 		{
@@ -110,7 +153,7 @@ public class MailChimpConnection extends Connection{
 	 */
 	public void createList(String listName, String permission_reminder, boolean email_type_option, CampaignDefaults campaignDefaults) throws Exception{
 		JSONObject jsonList = new JSONObject();
-		
+
 		JSONObject contact = new JSONObject();
 		contact.put("company", account.getCompany());
 		contact.put("address1", account.getAddress1());
@@ -118,13 +161,13 @@ public class MailChimpConnection extends Connection{
 		contact.put("state", account.getState());
 		contact.put("zip", account.getZip());
 		contact.put("country", account.getCountry());
-		
+
 		JSONObject JSONCampaignDefaults = new JSONObject();
 		JSONCampaignDefaults.put("from_name", campaignDefaults.getFrom_name());
 		JSONCampaignDefaults.put("from_email", campaignDefaults.getFrom_email());
 		JSONCampaignDefaults.put("subject", campaignDefaults.getSubject());
 		JSONCampaignDefaults.put("language", campaignDefaults.getLanguage());
-		
+
 		jsonList.put("name",listName);
 		jsonList.put("permission_reminder", permission_reminder);
 		jsonList.put("email_type_option", email_type_option);
@@ -331,12 +374,12 @@ public class MailChimpConnection extends Connection{
 	 * @param settings
 	 */
 	public Campaign createCampaign(CampaignType type, MailChimpList mailChimpList, CampaignSettings settings) throws Exception{
-		
+
 		JSONObject campaign = new JSONObject();
-		
+
 		JSONObject recipients = new JSONObject();
 		recipients.put("list_id", mailChimpList.getId());
-		
+
 		JSONObject jsonSettings = new JSONObject();
 		put(jsonSettings, "subject_line", settings.getSubject_line());
 		put(jsonSettings, "title", settings.getTitle());
@@ -355,11 +398,11 @@ public class MailChimpConnection extends Connection{
 		put(jsonSettings, "drag_and_drop", settings.getDrag_and_drop());
 		put(jsonSettings, "inline_css", settings.getInline_css());
 		put(jsonSettings, "folder_id", settings.getFolder_id());
-		
+
 		campaign.put("type", type.getStringRepresentation());
 		campaign.put("recipients", recipients);
 		campaign.put("settings", jsonSettings);
-		
+
 		campaign = new JSONObject(do_Post(new URL(campaignendpoint), campaign.toString(), getApikey()));
 		return new Campaign(this, campaign);
 	}
@@ -377,7 +420,7 @@ public class MailChimpConnection extends Connection{
 		}
 		return settings;
 	}
-	
+
 	/**
 	 * Delete a campaign from mailchimp account
 	 * @param campaignID
@@ -460,7 +503,7 @@ public class MailChimpConnection extends Connection{
 					TemplateType.valueOf(templatesDetail.getString("type").toUpperCase()),
 					templatesDetail.getString("share_url"),
 					DateConverter.getInstance().createDateFromISO8601(templatesDetail.getString("date_created")),
-					templatesDetail.has("folder_id") ? templatesDetail.getString("folder_id") : null, 
+					templatesDetail.has("folder_id") ? templatesDetail.getString("folder_id") : null,
 					this,
 					templatesDetail);
 			templates.add(template);
@@ -544,7 +587,7 @@ public class MailChimpConnection extends Connection{
 		}
 		return automations;
 	}
-	
+
 	/**
 	 * Get an specific automation
 	 * @param id

@@ -4,9 +4,13 @@
  */
 package com.github.alexanderwe.bananaj.model.list;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.github.alexanderwe.bananaj.connection.MailChimpConnection;
 import com.github.alexanderwe.bananaj.exceptions.EmailException;
 import com.github.alexanderwe.bananaj.exceptions.FileFormatException;
+import com.github.alexanderwe.bananaj.model.Link;
+import com.github.alexanderwe.bananaj.model.campaign.CampaignDefaults;
 import jxl.*;
 import jxl.read.biff.BiffException;
 import jxl.write.*;
@@ -40,11 +44,70 @@ import java.util.Map;
  */
 public class MailChimpList extends MailchimpObject {
 
+
+	@JsonProperty("id")
+	private String id;
+
+	@JsonProperty("name")
 	private String name;
+
+	@JsonProperty("web_id")
+	private int web_id;
+
+	@JsonProperty
+	private ListContact contact;
+
+	@JsonProperty("permission_reminder")
+	private String permission_reminder;
+
+	@JsonProperty("use_archive_bar")
+	private String use_archive_bar;
+
+    @JsonProperty
+	private CampaignDefaults campaignDefaults;
+
+	@JsonProperty("notifiy_on_subscribe")
+	private String notify_onsubscribe;
+
+	@JsonProperty("notifiy_on_unsubscribe")
+	private String notifiy_on_unsubscribe;
+
+	@JsonProperty("date_created")
+	private LocalDateTime date_created;
+
+	@JsonProperty("list_rating")
+	private int list_rating;
+
+	@JsonProperty("email_type_option")
+	private boolean email_type_option;
+
+	@JsonProperty("subscribe_url_short")
+	private String subscribe_url_short;
+
+	@JsonProperty("subscribe_url_long")
+	private String subscribe_url_long;
+
+	@JsonProperty("beamer_address")
+	private String beamer_address;
+
+	@JsonProperty("visibility")
+	private String visibility;
+
+    @JsonIgnore
+	private Object modules;
+
+    @JsonProperty
+	private Stats stats;
+
+	@JsonProperty("_links")
+	Link[] _links;
+
+
+
 	private int membercount;
 	private LocalDateTime dateCreated;
 	private MailChimpConnection connection;
-	
+
 
 	public MailChimpList(String id, String name, int membercount, LocalDateTime dateCreated, MailChimpConnection connection, JSONObject jsonRepresentation){
 		super(id,jsonRepresentation);
@@ -118,7 +181,7 @@ public class MailChimpList extends MailchimpObject {
 		}
 		return new Member(member.getString("id"),this,merge_fields,member.getString("unique_email_id"), member.getString("email_address"),  MemberStatus.valueOf(member.getString("status").toUpperCase()),member.getString("timestamp_signup"),member.getString("ip_signup"),member.getString("timestamp_opt"),member.getString("ip_opt"),memberStats.getDouble("avg_open_rate"),memberStats.getDouble("avg_click_rate"),member.getString("last_changed"),this.getConnection(),member);
 	}
-	
+
 	/**
 	 * Add a member with the minimum of information
 	 * @param status
@@ -132,7 +195,7 @@ public class MailChimpList extends MailchimpObject {
         getConnection().do_Post(new URL(connection.getListendpoint()+"/"+this.getId()+"/members"),member.toString(),connection.getApikey());
         this.membercount++;
 	}
-	
+
 	/**
 	 * Add a member with first and last name
 	 * @param status
@@ -142,7 +205,7 @@ public class MailChimpList extends MailchimpObject {
 	 */
 	public void addMember(MemberStatus status, String emailAddress, HashMap<String, Object> merge_fields_values) throws Exception{
 		URL url = new URL(connection.getListendpoint()+"/"+this.getId()+"/members");
-		
+
 		JSONObject member = new JSONObject();
 		JSONObject merge_fields = new JSONObject();
 
@@ -152,7 +215,7 @@ public class MailChimpList extends MailchimpObject {
 			it.remove(); // avoids a ConcurrentModificationException
 			merge_fields.put(pair.getKey().toString(), pair.getValue());
 		}
-		
+
 		member.put("status", status.getStringRepresentation());
 		member.put("email_address", emailAddress);
 		member.put("merge_fields", merge_fields);
@@ -204,26 +267,14 @@ public class MailChimpList extends MailchimpObject {
 		getConnection().do_Delete(new URL(connection.getListendpoint()+"/"+getId()+"/members/"+memberID),connection.getApikey());
 		this.membercount--;
 	}
-	
-	/**
-	 * Get the growth history of this list
-	 * @return a growth history
-	 * @throws Exception
-	 */
-	public GrowthHistory getGrowthHistory() throws Exception{
-		final JSONObject growth_history = new JSONObject(getConnection().do_Get(new URL(connection.getListendpoint()+"/"+this.getId()+"/growth-history"),connection.getApikey()));
-    	final JSONArray history = growth_history.getJSONArray("history");
-    	final JSONObject historyDetail = history.getJSONObject(0);
-    	
-    	return new GrowthHistory(this, historyDetail.getString("month"), historyDetail.getInt("existing"), historyDetail.getInt("imports"), historyDetail.getInt("optins"));
-	}
+
 
 	/**
 	 * Get all segments of this list
 	 * @return
 	 * @throws Exception
      */
-	public ArrayList<Segment> getSegments() throws Exception {
+	/*public ArrayList<Segment> getSegments() throws Exception {
         ArrayList<Segment> segments = new ArrayList<Segment>();
 		JSONObject jsonSegments = new JSONObject(connection.do_Get(new URL(connection.getListendpoint()+"/"+this.getId()+"/segments") ,connection.getApikey()));
 
@@ -280,7 +331,7 @@ public class MailChimpList extends MailchimpObject {
 		}
 
         return segments;
-    }
+    }*/
 
 	/**
 	 * Get a specific segment of this list
@@ -288,7 +339,7 @@ public class MailChimpList extends MailchimpObject {
 	 * @return
 	 * @throws Exception
 	 */
-	public Segment getSegment(String segmentID) throws Exception {
+	/*public Segment getSegment(String segmentID) throws Exception {
 		JSONObject jsonSegment = new JSONObject(connection.do_Get(new URL(connection.getListendpoint()+"/"+this.getId()+"/segments/"+segmentID) ,connection.getApikey()));
 
 		//Extract options and conditions
@@ -317,7 +368,7 @@ public class MailChimpList extends MailchimpObject {
 				new Options(matchType,conditions),
 				this.getConnection(),
 				jsonSegment);
-	}
+	}*/
 
 	/**
 	 * Add a segment to the list
@@ -503,11 +554,11 @@ public class MailChimpList extends MailchimpObject {
 		}
 
 		WritableSheet sheet = workbook.createSheet(this.getName(), 0);
-		
-		
-		WritableFont times16font = new WritableFont(WritableFont.TIMES, 16, WritableFont.BOLD, false); 
-		WritableCellFormat times16format = new WritableCellFormat (times16font); 
-		
+
+
+		WritableFont times16font = new WritableFont(WritableFont.TIMES, 16, WritableFont.BOLD, false);
+		WritableCellFormat times16format = new WritableCellFormat (times16font);
+
 		Label memberIDLabel = new Label(0, 0, "MemberID",times16format);
 		Label email_addressLabel = new Label(1,0,"Email Address",times16format);
 		Label timestamp_sign_inLabel = new Label(2,0,"Sign up",times16format);
@@ -517,7 +568,7 @@ public class MailChimpList extends MailchimpObject {
 		Label statusLabel = new Label(6,0,"Status",times16format);
 		Label avg_open_rateLabel = new Label(7,0,"Avg. open rate",times16format);
 		Label avg_click_rateLabel = new Label(8,0,"Avg. click rate",times16format);
-		
+
 
 		sheet.addCell(memberIDLabel);
 		sheet.addCell(email_addressLabel);
@@ -581,7 +632,7 @@ public class MailChimpList extends MailchimpObject {
 		}
 
 
-		workbook.write(); 
+		workbook.write();
 		workbook.close();
 
 		System.out.println("Writing to excel - done");
@@ -622,5 +673,164 @@ public class MailChimpList extends MailchimpObject {
 				"Date created: " + this.getDateCreated() + System.lineSeparator();
 	}
 
+    @Override
+    public String getId() {
+        return id;
+    }
 
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public int getWeb_id() {
+        return web_id;
+    }
+
+    public void setWeb_id(int web_id) {
+        this.web_id = web_id;
+    }
+
+    public ListContact getContact() {
+        return contact;
+    }
+
+    public void setContact(ListContact contact) {
+        this.contact = contact;
+    }
+
+    public String getPermission_reminder() {
+        return permission_reminder;
+    }
+
+    public void setPermission_reminder(String permission_reminder) {
+        this.permission_reminder = permission_reminder;
+    }
+
+    public String getUse_archive_bar() {
+        return use_archive_bar;
+    }
+
+    public void setUse_archive_bar(String use_archive_bar) {
+        this.use_archive_bar = use_archive_bar;
+    }
+
+    public CampaignDefaults getCampaignDefaults() {
+        return campaignDefaults;
+    }
+
+    public void setCampaignDefaults(CampaignDefaults campaignDefaults) {
+        this.campaignDefaults = campaignDefaults;
+    }
+
+    public String getNotify_onsubscribe() {
+        return notify_onsubscribe;
+    }
+
+    public void setNotify_onsubscribe(String notify_onsubscribe) {
+        this.notify_onsubscribe = notify_onsubscribe;
+    }
+
+    public String getNotifiy_on_unsubscribe() {
+        return notifiy_on_unsubscribe;
+    }
+
+    public void setNotifiy_on_unsubscribe(String notifiy_on_unsubscribe) {
+        this.notifiy_on_unsubscribe = notifiy_on_unsubscribe;
+    }
+
+    public LocalDateTime getDate_created() {
+        return date_created;
+    }
+
+    public void setDate_created(LocalDateTime date_created) {
+        this.date_created = date_created;
+    }
+
+    public int getList_rating() {
+        return list_rating;
+    }
+
+    public void setList_rating(int list_rating) {
+        this.list_rating = list_rating;
+    }
+
+    public boolean isEmail_type_option() {
+        return email_type_option;
+    }
+
+    public void setEmail_type_option(boolean email_type_option) {
+        this.email_type_option = email_type_option;
+    }
+
+    public String getSubscribe_url_short() {
+        return subscribe_url_short;
+    }
+
+    public void setSubscribe_url_short(String subscribe_url_short) {
+        this.subscribe_url_short = subscribe_url_short;
+    }
+
+    public String getSubscribe_url_long() {
+        return subscribe_url_long;
+    }
+
+    public void setSubscribe_url_long(String subscribe_url_long) {
+        this.subscribe_url_long = subscribe_url_long;
+    }
+
+    public String getBeamer_address() {
+        return beamer_address;
+    }
+
+    public void setBeamer_address(String beamer_address) {
+        this.beamer_address = beamer_address;
+    }
+
+    public String getVisibility() {
+        return visibility;
+    }
+
+    public void setVisibility(String visibility) {
+        this.visibility = visibility;
+    }
+
+    public Object getModules() {
+        return modules;
+    }
+
+    public void setModules(Object modules) {
+        this.modules = modules;
+    }
+
+    public Stats getStats() {
+        return stats;
+    }
+
+    public void setStats(Stats stats) {
+        this.stats = stats;
+    }
+
+    public Link[] get_links() {
+        return _links;
+    }
+
+    public void set_links(Link[] _links) {
+        this._links = _links;
+    }
+
+    public void setMembercount(int membercount) {
+        this.membercount = membercount;
+    }
+
+    public void setDateCreated(LocalDateTime dateCreated) {
+        this.dateCreated = dateCreated;
+    }
+
+    public void setConnection(MailChimpConnection connection) {
+        this.connection = connection;
+    }
 }

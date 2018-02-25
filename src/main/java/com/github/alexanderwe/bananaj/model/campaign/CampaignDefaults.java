@@ -4,12 +4,21 @@
  */
 package com.github.alexanderwe.bananaj.model.campaign;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public class CampaignDefaults {
 
-	
+
+	@JsonProperty
 	private String from_name;
+
+	@JsonProperty
 	private String from_email;
+
+	@JsonProperty
 	private String subject;
+
+	@JsonProperty
 	private String language;
 	
 	public CampaignDefaults(String from_name, String from_email, String subject, String language) {

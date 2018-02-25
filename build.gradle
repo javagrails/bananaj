@@ -1,0 +1,27 @@
+apply plugin: 'java'
+apply plugin: 'maven'
+
+group = 'com.github.alexanderwe'
+version = '0.1.0'
+
+description = """bananaj"""
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+tasks.withType(JavaCompile) {
+	options.encoding = 'UTF-8'
+}
+
+
+
+repositories {
+        
+     maven { url "http://repo.maven.apache.org/maven2" }
+}
+dependencies {
+    compile group: 'commons-codec', name: 'commons-codec', version:'1.10'
+    compile group: 'net.sourceforge.jexcelapi', name: 'jxl', version:'2.6.12'
+    compile group: 'com.mashape.unirest', name: 'unirest-java', version:'1.4.9'
+    compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.9.4'
+    compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.7'
+}

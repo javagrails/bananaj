@@ -4,6 +4,8 @@
  */
 package com.github.alexanderwe.bananaj.model.list.member;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 /**
  * Possible status of a member of a list
  * @author alexanderweiss
@@ -11,7 +13,10 @@ package com.github.alexanderwe.bananaj.model.list.member;
  */
 public enum MemberStatus {
 
-	PENDING("pending"),SUBSCRIBED("subscribed"),UNSUBSCRIBED("unsubscribed"),CLEANED("cleaned");
+	@JsonProperty("pending")PENDING("pending"),
+	@JsonProperty("subscribed")SUBSCRIBED("subscribed"),
+    @JsonProperty("unsubscribed")UNSUBSCRIBED("unsubscribed"),
+    @JsonProperty("cleaned")CLEANED("cleaned");
 	
 	private String stringRepresentation;
 	
