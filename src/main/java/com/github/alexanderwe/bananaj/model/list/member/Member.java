@@ -8,8 +8,6 @@ import com.github.alexanderwe.bananaj.connection.MailChimpConnection;
 import com.github.alexanderwe.bananaj.exceptions.EmailException;
 import com.github.alexanderwe.bananaj.model.MailchimpObject;
 import com.github.alexanderwe.bananaj.model.list.MailChimpList;
-import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 import com.github.alexanderwe.bananaj.utils.EmailValidator;
 
@@ -36,7 +34,7 @@ public class Member extends MailchimpObject{
 	private double avg_open_rate;
 	private double avg_click_rate;
 	private String last_changed;
-	private List<MemberActivity> memberActivities;
+	private List<Activity> memberActivities;
 	private MailChimpConnection connection;
 
 
@@ -57,7 +55,7 @@ public class Member extends MailchimpObject{
         this.connection = connection;
 
 		try{
-			setMemberActivities(unique_email_id, mailChimpList.getId());
+			//setMemberActivities(unique_email_id, mailChimpList.getId());
 		}catch (Exception e){
 			e.printStackTrace();
 		}
@@ -72,7 +70,7 @@ public class Member extends MailchimpObject{
 		JSONObject updateMember = new JSONObject();
 		updateMember.put("list_id", listId);
         this.getConnection().do_Patch(new URL("https://"+ mailChimpList.getConnection().getServer()+".api.mailchimp.com/3.0/lists/"+ getMailChimpList().getId()+"/members/"+getId()), updateMember.toString(),connection.getApikey());
-		this.mailChimpList = this.getConnection().getList(listId);
+		//this.mailChimpList = this.getConnection().getList(listId);
 	}
 	
 	/**
@@ -168,39 +166,12 @@ public class Member extends MailchimpObject{
 		return last_changed;
 	}
 
-	/**
-	 * Set the member activities fot this specific member
-	 * @param unique_email_id
-	 * @param listID
-	 * @throws Exception
-	 */
-	private void setMemberActivities(String unique_email_id, String listID) throws Exception{
-		List<MemberActivity> activities = new ArrayList<MemberActivity>();
 
-		final JSONObject activity = new JSONObject(this.getConnection().do_Get(new URL("https://"+this.mailChimpList.getConnection().getServer()+".api.mailchimp.com/3.0/lists/"+this.mailChimpList.getId()+"/members/"+this.getId()+"/activity"),connection.getApikey()));
-		final JSONArray activityArray = activity.getJSONArray("activity");
-
-		for (int i = 0 ; i < activityArray.length();i++)
-		{
-			try{
-				final JSONObject activityDetail = activityArray.getJSONObject(i);
-				MemberActivity memberActivity = new MemberActivity(this.unique_email_id, this.mailChimpList.getId(), activityDetail.getString("action"),activityDetail.getString("timestamp"), activityDetail.getString("campaign_id"), activityDetail.getString("title"));
-				activities.add(memberActivity);
-			} catch (JSONException jsone){
-				final JSONObject activityDetail = activityArray.getJSONObject(i);
-				MemberActivity memberActivity = new MemberActivity(this.unique_email_id, this.mailChimpList.getId(), activityDetail.getString("action"),activityDetail.getString("timestamp"), activityDetail.getString("campaign_id"));
-				activities.add(memberActivity);
-			}
-
-		}
-
-		this.memberActivities = activities;
-	}
 
 	/**
 	 * @return the member activities
 	 */
-	public List<MemberActivity> getMemberActivities(){
+	public List<Activity> getMemberActivities(){
 		return this.memberActivities;
 	}
 

@@ -1,11 +1,15 @@
 package com.github.alexanderwe.bananaj.model.list.segment;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 /**
  * Created by alexanderweiss on 27.12.16.
  */
 public enum MatchType {
 
-    ANY("any"),ALL("all");
+    @JsonProperty("any")
+    ANY("any"),
+    @JsonProperty("all") ALL("all");
 
     private String stringRepresentation;
 

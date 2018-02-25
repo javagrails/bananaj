@@ -1,114 +1,101 @@
 package com.github.alexanderwe.bananaj.connection;
 
-import java.io.File;
-import java.io.IOException;
-import java.lang.reflect.Array;
-import java.net.URL;
-import java.util.*;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.github.alexanderwe.bananaj.exceptions.MailchimpAPIException;
+import com.github.alexanderwe.bananaj.model.automation.Automation;
+import com.github.alexanderwe.bananaj.model.automation.AutomationStatus;
+import com.github.alexanderwe.bananaj.model.automation.Automations;
+import com.github.alexanderwe.bananaj.model.campaign.*;
+import com.github.alexanderwe.bananaj.model.list.MailChimpList;
 import com.github.alexanderwe.bananaj.model.list.MailchimpLists;
-import com.github.alexanderwe.bananaj.model.list.member.MemberStatus;
+import com.github.alexanderwe.bananaj.model.list.NewMList;
+import com.github.alexanderwe.bananaj.model.template.Template;
+import com.github.alexanderwe.bananaj.model.template.TemplateFolder;
+import com.github.alexanderwe.bananaj.model.template.TemplateFolders;
+import com.github.alexanderwe.bananaj.model.template.Templates;
+import com.github.alexanderwe.bananaj.utils.DateConverter;
 import com.mashape.unirest.http.HttpResponse;
+import com.mashape.unirest.http.JsonNode;
 import com.mashape.unirest.http.ObjectMapper;
 import com.mashape.unirest.http.Unirest;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import jxl.CellView;
-import jxl.Workbook;
-import jxl.write.Label;
-import jxl.write.Number;
-import jxl.write.WritableCellFormat;
-import jxl.write.WritableFont;
-import jxl.write.WritableSheet;
-import jxl.write.WritableWorkbook;
-import com.github.alexanderwe.bananaj.model.automation.Automation;
-import com.github.alexanderwe.bananaj.model.automation.AutomationStatus;
-import com.github.alexanderwe.bananaj.model.campaign.Campaign;
-import com.github.alexanderwe.bananaj.model.campaign.CampaignDefaults;
-import com.github.alexanderwe.bananaj.model.campaign.CampaignFolder;
-import com.github.alexanderwe.bananaj.model.campaign.CampaignSettings;
-import com.github.alexanderwe.bananaj.model.campaign.CampaignType;
-import com.github.alexanderwe.bananaj.model.list.MailChimpList;
-import com.github.alexanderwe.bananaj.model.list.member.Member;
-import com.github.alexanderwe.bananaj.model.template.Template;
-import com.github.alexanderwe.bananaj.model.template.TemplateFolder;
-import com.github.alexanderwe.bananaj.model.template.TemplateType;
-import com.github.alexanderwe.bananaj.utils.DateConverter;
+import java.io.IOException;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Class for the com.github.alexanderwe.bananaj.connection to mailchimp servers. Used to get lists from mailchimp account.
- * @author alexanderweiss
  *
+ * @author alexanderweiss
  */
-public class MailChimpConnection extends Connection{
+public class MailChimpConnection extends Connection {
 
-	private String server;
-	private String apikey;
-	private final String apiendpoint;
-	private final String listendpoint;
-	private final String campaignfolderendpoint;
-	private final String campaignendpoint;
-	private final String templatefolderendpoint;
-	private final String templateendpoint;
-	private final String automationendpoint;
-	private final String filemanagerfolderendpoint;
-	private final String filesendpoint;
-	private Account account;
-	
-	public MailChimpConnection(String apikey){
-		initUnirest();
-		this.server = apikey.split("-")[1];
-		this.apikey = "apikey "+apikey;
-		this.apiendpoint = "https://"+server+".api.mailchimp.com/3.0/";
-		this.listendpoint = "https://"+server+".api.mailchimp.com/3.0/lists";
-		this.campaignfolderendpoint =  "https://"+server+".api.mailchimp.com/3.0/campaign-folders";
-		this.campaignendpoint ="https://"+server+".api.mailchimp.com/3.0/campaigns";
-		this.templatefolderendpoint = "https://"+server+".api.mailchimp.com/3.0/template-folders";
-		this.templateendpoint = "https://"+server+".api.mailchimp.com/3.0/templates";
-		this.automationendpoint = "https://"+server+".api.mailchimp.com/3.0/automations";
-		this.filemanagerfolderendpoint = "https://"+server+".api.mailchimp.com/3.0/file-manager/folders";
-		this.filesendpoint = "https://"+server+".api.mailchimp.com/3.0/file-manager/files";
-		try {
-			setAccount();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
+    private String server;
+    private String apikey;
+    private final String apiendpoint;
+    private final String listendpoint;
+    private final String campaignfolderendpoint;
+    private final String campaignendpoint;
+    private final String templatefolderendpoint;
+    private final String templateendpoint;
+    private final String automationendpoint;
+    private final String filemanagerfolderendpoint;
+    private final String filesendpoint;
+    private Account account;
 
-	private void initUnirest(){
-		Unirest.setObjectMapper(new ObjectMapper() {
-			private com.fasterxml.jackson.databind.ObjectMapper jacksonObjectMapper
-					= new com.fasterxml.jackson.databind.ObjectMapper();
+    public MailChimpConnection(String apikey) {
+        initUnirest();
+        this.server = apikey.split("-")[1];
+        this.apikey = "apikey " + apikey;
+        this.apiendpoint = "https://" + server + ".api.mailchimp.com/3.0/";
+        this.listendpoint = "https://" + server + ".api.mailchimp.com/3.0/lists";
+        this.campaignfolderendpoint = "https://" + server + ".api.mailchimp.com/3.0/campaign-folders";
+        this.campaignendpoint = "https://" + server + ".api.mailchimp.com/3.0/campaigns";
+        this.templatefolderendpoint = "https://" + server + ".api.mailchimp.com/3.0/template-folders";
+        this.templateendpoint = "https://" + server + ".api.mailchimp.com/3.0/templates";
+        this.automationendpoint = "https://" + server + ".api.mailchimp.com/3.0/automations";
+        this.filemanagerfolderendpoint = "https://" + server + ".api.mailchimp.com/3.0/file-manager/folders";
+        this.filesendpoint = "https://" + server + ".api.mailchimp.com/3.0/file-manager/files";
+        try {
+            setAccount();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
-			public <T> T readValue(String value, Class<T> valueType) {
-				try {
-					return jacksonObjectMapper.readValue(value, valueType);
-				} catch (IOException e) {
-					throw new RuntimeException(e);
-				}
-			}
+    private void initUnirest() {
+        Unirest.setObjectMapper(new ObjectMapper() {
+            private com.fasterxml.jackson.databind.ObjectMapper jacksonObjectMapper
+                    = new com.fasterxml.jackson.databind.ObjectMapper();
 
-			public String writeValue(Object value) {
-				try {
-					return jacksonObjectMapper.writeValueAsString(value);
-				} catch (JsonProcessingException e) {
-					throw new RuntimeException(e);
-				}
-			}
-		});
-	}
+            public <T> T readValue(String value, Class<T> valueType) {
+                try {
+                    return jacksonObjectMapper.readValue(value, valueType);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
 
-	/**
-	 * Get all lists in your account
-	 * @return Arraylist containing all lists
-	 * @throws Exception
-	 */
-	public List<MailChimpList> getLists() throws Exception{
-		List<MailChimpList> mailChimpLists = new ArrayList<MailChimpList>();
-		// parse response
-		JSONObject jsonLists = new JSONObject(do_Get(new URL(listendpoint),getApikey()));
+            public String writeValue(Object value) {
+                try {
+                    return jacksonObjectMapper.writeValueAsString(value);
+                } catch (JsonProcessingException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        });
+    }
+
+    /**
+     * Get all lists in your account
+     *
+     * @return Arraylist containing all lists
+     * @throws Exception
+     */
+    public MailchimpLists getLists() throws Exception {
 
         HttpResponse<MailchimpLists> mailchimpListsHttpResponse = Unirest.get(this.listendpoint)
                 .header("Authorization", this.apikey)
@@ -120,77 +107,74 @@ public class MailChimpConnection extends Connection{
             list.setConnection(this);
         });
 
-        mailLists.getLists().get(0).getSegments();
+        return mailLists;
+    }
+
+    /**
+     * Get a specific mailchimp list
+     *
+     * @return a Mailchimp list object
+     * @throws Exception
+     */
+    public NewMList getList(String listID) throws Exception {
+
+        HttpResponse<NewMList> mailchimpListsHttpResponse = Unirest.get(this.listendpoint + "/" + listID)
+                .header("Authorization", this.apikey)
+                .asObject(NewMList.class);
+        return mailchimpListsHttpResponse.getBody();
+    }
 
 
-		JSONArray listsArray = jsonLists.getJSONArray("lists");
-		for( int i = 0; i< listsArray.length();i++)
-		{
-			JSONObject listDetail = listsArray.getJSONObject(i);
-			JSONObject listStats = listDetail.getJSONObject("stats");
-
-			MailChimpList mailChimpList = new MailChimpList(listDetail.getString("id"),listDetail.getString("name"),listStats.getInt("member_count"),DateConverter.getInstance().createDateFromISO8601(listDetail.getString("date_created")),this,listDetail);
-			mailChimpLists.add(mailChimpList);
-		}
-		return mailChimpLists;
-	}
-
-	/**
-	 * Get a specific mailchimp list
-	 * @return a Mailchimp list object
-	 * @throws Exception
-	 */
-	public MailChimpList getList(String listID) throws Exception{
-		JSONObject list = new JSONObject(do_Get(new URL(listendpoint +"/"+listID),getApikey()));
-		JSONObject listStats = list.getJSONObject("stats");
-		return new MailChimpList(list.getString("id"),list.getString("name"),listStats.getInt("member_count"),DateConverter.getInstance().createDateFromISO8601(list.getString("date_created")),this,list);
-	}
+    /**
+     * Create a new list in your mailchimp account
+     *
+     * @param listName
+     */
+    public void createList(String listName, String permission_reminder, boolean email_type_option, NewCampaignDefaults campaignDefaults) throws Exception {
 
 
-	/**
-	 * Create a new list in your mailchimp account
-	 * @param listName
-	 */
-	public void createList(String listName, String permission_reminder, boolean email_type_option, CampaignDefaults campaignDefaults) throws Exception{
-		JSONObject jsonList = new JSONObject();
+        NewMList list = new NewMList();
+        list.setName(listName);
+        list.setPermission_reminder(permission_reminder);
+        list.setEmail_type_option(email_type_option);
+        list.setCampaign_defaults(campaignDefaults);
 
-		JSONObject contact = new JSONObject();
-		contact.put("company", account.getCompany());
-		contact.put("address1", account.getAddress1());
-		contact.put("city", account.getCity());
-		contact.put("state", account.getState());
-		contact.put("zip", account.getZip());
-		contact.put("country", account.getCountry());
+        HttpResponse<JsonNode> postReponse = Unirest.post(this.getListendpoint())
+                .header("Authorization", this.getApikey())
+                .header("accept", "application/json")
+                .header("Content-Type", "application/json")
+                .body(list)
+                .asJson();
 
-		JSONObject JSONCampaignDefaults = new JSONObject();
-		JSONCampaignDefaults.put("from_name", campaignDefaults.getFrom_name());
-		JSONCampaignDefaults.put("from_email", campaignDefaults.getFrom_email());
-		JSONCampaignDefaults.put("subject", campaignDefaults.getSubject());
-		JSONCampaignDefaults.put("language", campaignDefaults.getLanguage());
 
-		jsonList.put("name",listName);
-		jsonList.put("permission_reminder", permission_reminder);
-		jsonList.put("email_type_option", email_type_option);
-		jsonList.put("contact", contact);
-		jsonList.put("campaign_defaults", JSONCampaignDefaults);
+        if (postReponse.getStatus() / 100 != 2) {
+            throw new MailchimpAPIException(postReponse.getBody().getObject());
+        }
+    }
 
-		do_Post(new URL(listendpoint), jsonList.toString(),getApikey());
-	}
+    /**
+     * Delete a list from your account
+     *
+     * @param listID
+     * @throws Exception
+     */
+    public void deleteList(String listID) throws Exception {
 
-	/**
-	 * Delete a list from your account
-	 * @param listID
-	 * @throws Exception
-	 */
-	public void deleteList(String listID) throws Exception{
-		do_Delete(new URL(listendpoint +"/"+listID),getApikey());
-	}
+        HttpResponse<JsonNode> deleteReponse = Unirest.delete(this.getListendpoint() + "/" + listID)
+                .header("Authorization", this.getApikey())
+                .header("accept", "application/json")
+                .asJson();
 
-	/**
-	 * Write all lists to an Excel file
-	 * @throws Exception
-	 */
-	public void writeAllListToExcel(String filepath, boolean show_merge) throws Exception{
+        if (deleteReponse.getStatus() / 100 != 2) {
+            throw new MailchimpAPIException(deleteReponse.getBody().getObject());
+        }
+    }
+
+    /**
+     * Write all lists to an Excel file
+     * @throws Exception
+     */
+	/*public void writeAllListToExcel(String filepath, boolean show_merge) throws Exception{
 		WritableWorkbook workbook = Workbook.createWorkbook(new File(filepath+".xls"));
 		WritableFont times16font = new WritableFont(WritableFont.TIMES, 16, WritableFont.BOLD, false);
 		WritableCellFormat times16format = new WritableCellFormat (times16font);
@@ -279,422 +263,462 @@ public class MailChimpConnection extends Connection{
 		workbook.write();
 		workbook.close();
 		System.out.println("Writing to excel - done");
-	}
+	}*/
 
     /**
      * Get all template folders from MailChimp
+     *
      * @return
      */
-    public List<CampaignFolder> getCampaignFolders() throws Exception{
-        List<CampaignFolder> campaignFolders = new ArrayList<>();
-        JSONObject campaignFoldersResponse = new JSONObject(do_Get(new URL(campaignfolderendpoint), getApikey()));
-
-        JSONArray campaignFoldersJSON = campaignFoldersResponse.getJSONArray("folders");
-
-        for(int i = 0 ; i < campaignFoldersJSON.length(); i++){
-            JSONObject campaignFolderJSON = campaignFoldersJSON.getJSONObject(i);
-            CampaignFolder campaignFolder = new CampaignFolder(campaignFolderJSON.getString("id"),
-                    campaignFolderJSON.getString("name"),
-                    campaignFolderJSON.getInt("count"),
-                    campaignFolderJSON);
-            campaignFolders.add(campaignFolder);
-        }
-        return campaignFolders;
+    public CampaignFolders getCampaignFolders() throws Exception {
+        HttpResponse<CampaignFolders> campaignFoldersHttpResponse = Unirest.get(this.getCampaignfolderendpoint())
+                .header("Authorization", this.getApikey())
+                .asObject(CampaignFolders.class);
+        return campaignFoldersHttpResponse.getBody();
     }
 
     /**
      * Get a specific template folder
+     *
      * @param folder_id
      * @return
      */
-    public CampaignFolder getCampaignFolder(String folder_id) throws Exception{
-
-        JSONObject campaignFoldersResponse = new JSONObject(do_Get(new URL(campaignfolderendpoint +"/"+folder_id), getApikey()));
-
-        return new CampaignFolder(campaignFoldersResponse.getString("id"),
-                campaignFoldersResponse.getString("name"),
-                campaignFoldersResponse.getInt("count"),
-                campaignFoldersResponse);
+    public CampaignFolder getCampaignFolder(String folder_id) throws Exception {
+        HttpResponse<CampaignFolder> campaignFoldersHttpResponse = Unirest.get(this.getCampaignfolderendpoint() + "/" + folder_id)
+                .header("Authorization", this.getApikey())
+                .asObject(CampaignFolder.class);
+        return campaignFoldersHttpResponse.getBody();
     }
 
     /**
      * Add a template folder with a specific name
+     *
      * @param name
      */
-    public void addCampaignFolder(String name) throws Exception{
-        JSONObject campaignFolder = new JSONObject();
-        campaignFolder.put("name", name);
-        do_Post(new URL(campaignfolderendpoint), campaignFolder.toString(), getApikey());
+    public void addCampaignFolder(String name) throws Exception {
+        CampaignFolder campaignFolder = new CampaignFolder();
+        campaignFolder.setName(name);
+
+
+        HttpResponse<JsonNode> postReponse = Unirest.post(this.getCampaignfolderendpoint())
+                .header("Authorization", this.getApikey())
+                .header("accept", "application/json")
+                .header("Content-Type", "application/json")
+                .body(campaignFolder)
+                .asJson();
+
+        if (postReponse.getStatus() / 100 != 2) {
+            throw new MailchimpAPIException(postReponse.getBody().getObject());
+        }
     }
 
     /**
      * Delete a specific template folder
+     *
      * @param folder_id
      */
-    public void deleteCampaignFolder(String folder_id) throws Exception{
-        do_Delete(new URL(campaignfolderendpoint +"/"+folder_id), getApikey());
+    public void deleteCampaignFolder(String folder_id) throws Exception {
+        HttpResponse<JsonNode> deleteReponse = Unirest.delete(this.getListendpoint() + "/" + folder_id)
+                .header("Authorization", this.getApikey())
+                .header("accept", "application/json")
+                .asJson();
+
+        if (deleteReponse.getStatus() / 100 != 2) {
+            throw new MailchimpAPIException(deleteReponse.getBody().getObject());
+        }
     }
 
-   /**
-	 * Get all camapaigns from mailchimp account
-	 * @return Arraylist containing all campaigns
-	 * @throws Exception
-	 *  * TODO add campaignsettings
-	 */
-	public List<Campaign> getCampaigns() throws Exception {
-		List<Campaign> campaigns = new ArrayList<Campaign>();
-		// parse response
-		JSONObject jsonCampaigns = new JSONObject(do_Get(new URL(campaignendpoint),getApikey()));
-		JSONArray campaignsArray = jsonCampaigns.getJSONArray("campaigns");
-		for( int i = 0; i< campaignsArray.length();i++)
-		{
-			JSONObject campaignDetail = campaignsArray.getJSONObject(i);
-			Campaign campaign = new Campaign(this, campaignDetail);
-			campaigns.add(campaign);
-		}
-		return campaigns;
-	}
+    /**
+     * Get all camapaigns from mailchimp account
+     *
+     * @return Arraylist containing all campaigns
+     * @throws Exception * TODO add campaignsettings
+     */
+    public List<Campaign> getCampaigns() throws Exception {
+        List<Campaign> campaigns = new ArrayList<Campaign>();
+        // parse response
+        JSONObject jsonCampaigns = new JSONObject(do_Get(new URL(campaignendpoint), getApikey()));
+        JSONArray campaignsArray = jsonCampaigns.getJSONArray("campaigns");
+        for (int i = 0; i < campaignsArray.length(); i++) {
+            JSONObject campaignDetail = campaignsArray.getJSONObject(i);
+            Campaign campaign = new Campaign(this, campaignDetail);
+            campaigns.add(campaign);
+        }
+        return campaigns;
+    }
 
-	/**
-	 * Get a campaign from mailchimp account
-	 * @param campaignID
-	 * @return a campaign object
-	 * @throws Exception
-	 * TODO add campaignsettings
-	 */
-	public Campaign getCampaign(String campaignID) throws Exception {
-		JSONObject campaign = new JSONObject(do_Get(new URL(campaignendpoint +"/"+campaignID),getApikey()));
-		return new Campaign(this, campaign);
-	}
+    /**
+     * Get a campaign from mailchimp account
+     *
+     * @param campaignID
+     * @return a campaign object
+     * @throws Exception TODO add campaignsettings
+     */
+    public Campaign getCampaign(String campaignID) throws Exception {
+        JSONObject campaign = new JSONObject(do_Get(new URL(campaignendpoint + "/" + campaignID), getApikey()));
+        return new Campaign(this, campaign);
+    }
 
-	/**
-	 * Create a new campaign in your mailchimp account
-	 * @param type
-	 * @param mailChimpList
-	 * @param settings
-	 */
-	public Campaign createCampaign(CampaignType type, MailChimpList mailChimpList, CampaignSettings settings) throws Exception{
+    /**
+     * Create a new campaign in your mailchimp account
+     *
+     * @param type
+     * @param mailChimpList
+     * @param settings
+     */
+    public Campaign createCampaign(CampaignType type, MailChimpList mailChimpList, CampaignSettings settings) throws Exception {
 
-		JSONObject campaign = new JSONObject();
+        JSONObject campaign = new JSONObject();
 
-		JSONObject recipients = new JSONObject();
-		recipients.put("list_id", mailChimpList.getId());
+        JSONObject recipients = new JSONObject();
+        recipients.put("list_id", mailChimpList.getId());
 
-		JSONObject jsonSettings = new JSONObject();
-		put(jsonSettings, "subject_line", settings.getSubject_line());
-		put(jsonSettings, "title", settings.getTitle());
-		put(jsonSettings, "to_name", settings.getTo_name());
-		put(jsonSettings, "from_name", settings.getFrom_name());
-		put(jsonSettings, "reply_to", settings.getReply_to());
-		if(settings.getTemplate_id() != 0 ) {
-			jsonSettings.put("template_id", settings.getTemplate_id());
-		}
-		put(jsonSettings, "auto_footer", settings.getAuto_footer());
-		put(jsonSettings, "use_conversation", settings.getUse_conversation());
-		put(jsonSettings, "authenticate", settings.getAuthenticate());
-		put(jsonSettings, "timewarp", settings.getTimewarp());
-		put(jsonSettings, "auto_tweet", settings.getAuto_tweet());
-		put(jsonSettings, "fb_comments", settings.getFb_comments());
-		put(jsonSettings, "drag_and_drop", settings.getDrag_and_drop());
-		put(jsonSettings, "inline_css", settings.getInline_css());
-		put(jsonSettings, "folder_id", settings.getFolder_id());
+        JSONObject jsonSettings = new JSONObject();
+        put(jsonSettings, "subject_line", settings.getSubject_line());
+        put(jsonSettings, "title", settings.getTitle());
+        put(jsonSettings, "to_name", settings.getTo_name());
+        put(jsonSettings, "from_name", settings.getFrom_name());
+        put(jsonSettings, "reply_to", settings.getReply_to());
+        if (settings.getTemplate_id() != 0) {
+            jsonSettings.put("template_id", settings.getTemplate_id());
+        }
+        put(jsonSettings, "auto_footer", settings.getAuto_footer());
+        put(jsonSettings, "use_conversation", settings.getUse_conversation());
+        put(jsonSettings, "authenticate", settings.getAuthenticate());
+        put(jsonSettings, "timewarp", settings.getTimewarp());
+        put(jsonSettings, "auto_tweet", settings.getAuto_tweet());
+        put(jsonSettings, "fb_comments", settings.getFb_comments());
+        put(jsonSettings, "drag_and_drop", settings.getDrag_and_drop());
+        put(jsonSettings, "inline_css", settings.getInline_css());
+        put(jsonSettings, "folder_id", settings.getFolder_id());
 
-		campaign.put("type", type.getStringRepresentation());
-		campaign.put("recipients", recipients);
-		campaign.put("settings", jsonSettings);
+        campaign.put("type", type.getStringRepresentation());
+        campaign.put("recipients", recipients);
+        campaign.put("settings", jsonSettings);
 
-		campaign = new JSONObject(do_Post(new URL(campaignendpoint), campaign.toString(), getApikey()));
-		return new Campaign(this, campaign);
-	}
+        campaign = new JSONObject(do_Post(new URL(campaignendpoint), campaign.toString(), getApikey()));
+        return new Campaign(this, campaign);
+    }
 
-	private JSONObject put(JSONObject settings, String key, String value) {
-		if (value != null) {
-			return settings.put(key, value);
-		}
-		return settings;
-	}
+    private JSONObject put(JSONObject settings, String key, String value) {
+        if (value != null) {
+            return settings.put(key, value);
+        }
+        return settings;
+    }
 
-	private JSONObject put(JSONObject settings, String key, Boolean value) {
-		if (value != null) {
-			return settings.put(key, value);
-		}
-		return settings;
-	}
+    private JSONObject put(JSONObject settings, String key, Boolean value) {
+        if (value != null) {
+            return settings.put(key, value);
+        }
+        return settings;
+    }
 
-	/**
-	 * Delete a campaign from mailchimp account
-	 * @param campaignID
-	 * @throws Exception
-	 */
-	public void deleteCampaign(String campaignID) throws Exception{
-		do_Delete(new URL(campaignendpoint +"/"+campaignID),getApikey());
-	}
+    /**
+     * Delete a campaign from mailchimp account
+     *
+     * @param campaign_id
+     * @throws Exception
+     */
+    public void deleteCampaign(String campaign_id) throws Exception {
+        HttpResponse<JsonNode> deleteReponse = Unirest.delete(this.getCampaignendpoint() + "/" + campaign_id)
+                .header("Authorization", this.getApikey())
+                .header("accept", "application/json")
+                .asJson();
+
+        if (deleteReponse.getStatus() / 100 != 2) {
+            throw new MailchimpAPIException(deleteReponse.getBody().getObject());
+        }
+    }
 
     /**
      * Get all template folders from MailChimp
+     *
      * @return
      */
-	public List<TemplateFolder> getTemplateFolders() throws Exception{
-        List<TemplateFolder> templateFolders = new ArrayList<>();
-        JSONObject templateFoldersResponse = new JSONObject(do_Get(new URL(templatefolderendpoint), getApikey()));
-
-        JSONArray templateFoldersJSON = templateFoldersResponse.getJSONArray("folders");
-
-        for(int i = 0 ; i < templateFoldersJSON.length(); i++){
-            JSONObject templateFolderJSON = templateFoldersJSON.getJSONObject(i);
-            TemplateFolder templateFolder = new TemplateFolder(templateFolderJSON.getString("id"),
-                    templateFolderJSON.getString("name"),
-                    templateFolderJSON.getInt("count"),
-                    templateFolderJSON);
-            templateFolders.add(templateFolder);
-        }
-        return templateFolders;
-	}
+    public TemplateFolders getTemplateFolders() throws Exception {
+        HttpResponse<TemplateFolders> templateFoldersHttpResponse = Unirest.get(this.getTemplatefolderendpoint())
+                .header("Authorization", this.getApikey())
+                .asObject(TemplateFolders.class);
+        return templateFoldersHttpResponse.getBody();
+    }
 
     /**
      * Get a specific template folder
+     *
      * @param folder_id
      * @return
      */
-    public TemplateFolder getTemplateFolder(String folder_id) throws Exception{
-
-        JSONObject templateFoldersResponse = new JSONObject(do_Get(new URL(templatefolderendpoint +"/"+folder_id), getApikey()));
-
-        return new TemplateFolder(templateFoldersResponse.getString("id"),
-                templateFoldersResponse.getString("name"),
-                templateFoldersResponse.getInt("count"),
-                templateFoldersResponse);
+    public TemplateFolder getTemplateFolder(String folder_id) throws Exception {
+        HttpResponse<TemplateFolder> templateFolderHttpResponse = Unirest.get(this.getTemplatefolderendpoint() + "/" + folder_id)
+                .header("Authorization", this.getApikey())
+                .asObject(TemplateFolder.class);
+        return templateFolderHttpResponse.getBody();
     }
 
     /**
      * Add a template folder with a specific name
+     *
      * @param name
      */
-    public void addTemplateFolder(String name) throws Exception{
-        JSONObject templateFolder = new JSONObject();
-        templateFolder.put("name", name);
-        do_Post(new URL(templatefolderendpoint), templateFolder.toString(), getApikey());
+    public void addTemplateFolder(String name) throws Exception {
+        TemplateFolder templateFolder = new TemplateFolder();
+        templateFolder.setName(name);
+
+        HttpResponse<JsonNode> postReponse = Unirest.post(this.getTemplatefolderendpoint())
+                .header("Authorization", this.getApikey())
+                .header("accept", "application/json")
+                .header("Content-Type", "application/json")
+                .body(templateFolder)
+                .asJson();
+
+        if (postReponse.getStatus() / 100 != 2) {
+            throw new MailchimpAPIException(postReponse.getBody().getObject());
+        }
     }
 
     /**
      * Delete a specific template folder
+     *
      * @param folder_id
      */
-    public void deleteTemplateFolder(String folder_id) throws Exception{
-        do_Delete(new URL(templatefolderendpoint +"/"+folder_id), getApikey());
+    public void deleteTemplateFolder(String folder_id) throws Exception {
+        HttpResponse<JsonNode> deleteReponse = Unirest.delete(this.getTemplatefolderendpoint() + "/" + folder_id)
+                .header("Authorization", this.getApikey())
+                .header("accept", "application/json")
+                .asJson();
+
+        if (deleteReponse.getStatus() / 100 != 2) {
+            throw new MailchimpAPIException(deleteReponse.getBody().getObject());
+        }
     }
 
-	/**
-	 * Get all templates from mailchimp account
-	 * @return Arraylist containing all templates
-	 * @throws Exception
-	 */
-	public List<Template> getTemplates() throws Exception{
-		List<Template> templates = new ArrayList<Template>();
+    /**
+     * Get all templates from mailchimp account
+     *
+     * @return Arraylist containing all templates
+     * @throws Exception
+     */
+    public Templates getTemplates() throws Exception {
+        HttpResponse<Templates> templatesHttpResponse = Unirest.get(this.getTemplateendpoint())
+                .header("Authorization", this.getApikey())
+                .asObject(Templates.class);
 
-		JSONObject jsonTemplates = new JSONObject(do_Get(new URL(templateendpoint),getApikey()));
-		JSONArray templatesArray = jsonTemplates.getJSONArray("templates");
-		for( int i = 0; i< templatesArray.length();i++)
-		{
-			JSONObject templatesDetail = templatesArray.getJSONObject(i);
+        Templates templates = templatesHttpResponse.getBody();
+        templates.getTemplates().forEach(template -> {
+            template.setConnection(this);
+        });
 
-			Template template = new Template(templatesDetail.getInt("id"),
-					templatesDetail.getString("name"),
-					TemplateType.valueOf(templatesDetail.getString("type").toUpperCase()),
-					templatesDetail.getString("share_url"),
-					DateConverter.getInstance().createDateFromISO8601(templatesDetail.getString("date_created")),
-					templatesDetail.has("folder_id") ? templatesDetail.getString("folder_id") : null,
-					this,
-					templatesDetail);
-			templates.add(template);
-		}
-		return templates;
-	}
+        return templates ;
+    }
 
-	/**
-	 * Get a template fom mailchimp account
-	 * @param id
-	 * @return a template object
-	 * @throws Exception
-	 */
-	public Template getTemplate(String id) throws Exception{
-		JSONObject jsonTemplate = new JSONObject(do_Get(new URL(templateendpoint +"/" +id),getApikey()));
-		Template template = new Template(jsonTemplate.getInt("id"),
-				jsonTemplate.getString("name"),
-				TemplateType.valueOf(jsonTemplate.getString("type").toUpperCase()),
-				jsonTemplate.getString("share_url"),
-				DateConverter.getInstance().createDateFromISO8601(jsonTemplate.getString("date_created")),
-				jsonTemplate.has("folder_id") ? jsonTemplate.getString("folder_id") : null,
-				this,
-				jsonTemplate);
-		return template;
-	}
+    /**
+     * Get a template fom mailchimp account
+     *
+     * @param template_id
+     * @return a template object
+     * @throws Exception
+     */
+    public Template getTemplate(String template_id) throws Exception {
+        HttpResponse<Template> templateHttpResponse = Unirest.get(this.getTemplateendpoint() + "/" + template_id)
+                .header("Authorization", this.getApikey())
+                .asObject(Template.class);
 
-	/**
-	 * Add a template to your MailChimp account
-	 * @param name
-	 * @param html
-	 * @throws Exception
-	 */
-	public void addTemplate(String name, String html) throws Exception{
-		JSONObject templateJSON = new JSONObject();
-		templateJSON.put("name", name);
-		templateJSON.put("html", html);
-		do_Post(new URL(templateendpoint +"/"), templateJSON.toString(),getApikey());
-	}
+        Template template = templateHttpResponse.getBody();
+        template.setConnection(this);
+        return template;
+    }
 
-	/**
-	 * Add a template to a specific folder to your MailChimp Account
-	 * @param name
-	 * @param folder_id
-	 * @param html
-	 * @throws Exception
-	 */
-	public void addTemplate(String name, String folder_id, String html) throws Exception{
-		JSONObject templateJSON = new JSONObject();
-		templateJSON.put("name", name);
-		templateJSON.put("folder_id", folder_id);
-		templateJSON.put("html", html);
-		do_Post(new URL(templateendpoint +"/"), templateJSON.toString(),getApikey());
-	}
+    /**
+     * Add a template to your MailChimp account
+     *
+     * @param name
+     * @param html
+     * @throws Exception
+     */
+    public void addTemplate(String name, String html) throws Exception {
+        Template template = new Template();
+        template.setName(name);
+        template.setHtml(html);
 
-	/**
-	 * Delete a specific template
-	 * @param id
-	 * @throws Exception
-	 */
-	public void deleteTemplate(String id) throws Exception {
-		do_Delete(new URL(templateendpoint +"/" +id),getApikey());
-	}
+        HttpResponse<JsonNode> postReponse = Unirest.patch(this.getTemplateendpoint())
+                .header("Authorization", this.getApikey())
+                .header("accept", "application/json")
+                .header("Content-Type", "application/json")
+                .body(template)
+                .asJson();
 
-	/**
-	 * Get all automations from mailchimp account
-	 * @return ArrayList containing all automations
-	 * @throws Exception
-	 */
-	public List<Automation> getAutomations() throws Exception{
-		List<Automation> automations = new ArrayList<Automation>();
+        if (postReponse.getStatus() / 100 != 2) {
+            throw new MailchimpAPIException(postReponse.getBody().getObject());
+        }
+    }
 
-		JSONObject jsonAutomations = new JSONObject(do_Get(new URL(automationendpoint),getApikey()));
-		JSONArray automationsArray = jsonAutomations.getJSONArray("automations");
-		for( int i = 0; i< automationsArray.length();i++)
-		{
-			JSONObject automationDetail = automationsArray.getJSONObject(i);
-			JSONObject recipients = automationDetail.getJSONObject("recipients");
-
-			Automation automation = new Automation(automationDetail.getString("id"), DateConverter.getInstance().createDateFromISO8601(automationDetail.getString("create_time")),DateConverter.getInstance().createDateFromISO8601(automationDetail.getString("start_time")),AutomationStatus.valueOf(automationDetail.getString("status").toUpperCase()),automationDetail.getInt("emails_sent"),getList(recipients.getString("list_id")),automationDetail);
-			automations.add(automation);
-		}
-		return automations;
-	}
-
-	/**
-	 * Get an specific automation
-	 * @param id
-	 * @return an Automation object
-	 * @throws Exception
-	 */
-	public Automation getAutomation(String id) throws Exception{
-		JSONObject jsonAutomation = new JSONObject(do_Get(new URL(automationendpoint +"/"+id),getApikey()));
-		JSONObject recipients = jsonAutomation.getJSONObject("recipients");
-		return new Automation(jsonAutomation.getString("id"),DateConverter.getInstance().createDateFromISO8601(jsonAutomation.getString("create_time")),DateConverter.getInstance().createDateFromISO8601(jsonAutomation.getString("start_time")),AutomationStatus.valueOf(jsonAutomation.getString("status").toUpperCase()),jsonAutomation.getInt("emails_sent"),getList(recipients.getString("list_id")),jsonAutomation);
-	}
-
-	/**
-	 * @return the server
-	 */
-	public String getServer() {
-		return this.server;
-	}
-
-	/**
-	 * @return the apikey
-	 */
-	public String getApikey() {
-		return this.apikey;
-	}
-
-	/**
-	 * @return the apiendpoint
-	 */
-	public String getApiendpoint() {
-		return this.apiendpoint;
-	}
-
-	/**
-	 * @return the lISTENDPOINT
-	 */
-	public String getListendpoint() {
-		return this.listendpoint;
-	}
-
-	/**
-	 * @return the campaignendpoint
-	 */
-	public String getCampaignendpoint() {
-		return this.campaignendpoint;
-	}
-
-	/**
-	 * @return the templateendpoint
-	 */
-	public String getTemplateendpoint() {
-		return this.templateendpoint;
-	}
-
-	/**
-	 * @return the automationendpoint
-	 */
-	public String getAutomationendpoint(){
-		return this.automationendpoint;
-	}
-
-	/**
-	 * @return the filemanagerfolderendpoint
-	 */
-	public String getFilemanagerfolderendpoint() {
-		return this.filemanagerfolderendpoint;
-	}
+    /**
+     * Add a template to a specific folder to your MailChimp Account
+     *
+     * @param name
+     * @param folder_id
+     * @param html
+     * @throws Exception
+     */
+    public void addTemplate(String name, String folder_id, String html) throws Exception {
+        Template template = new Template();
+        template.setName(name);
+        template.setHtml(html);
+        template.setFolder_id(folder_id);
 
 
-	public String getFilesendpoint() {
-		return filesendpoint;
-	}
+        HttpResponse<JsonNode> postReponse = Unirest.patch(this.getTemplateendpoint())
+                .header("Authorization", this.getApikey())
+                .header("accept", "application/json")
+                .header("Content-Type", "application/json")
+                .body(template)
+                .asJson();
 
-	public String getCampaignfolderendpoint() {
-		return this.campaignfolderendpoint;
-	}
+        if (postReponse.getStatus() / 100 != 2) {
+            throw new MailchimpAPIException(postReponse.getBody().getObject());
+        }
+    }
 
-	public String getTemplatefolderendpoint() {
-		return this.templatefolderendpoint;
-	}
+    /**
+     * Delete a specific template
+     *
+     * @param template_id
+     * @throws Exception
+     */
+    public void deleteTemplate(String template_id) throws Exception {
+        HttpResponse<JsonNode> deleteReponse = Unirest.delete(this.getTemplateendpoint() + "/" + template_id)
+                .header("Authorization", this.getApikey())
+                .header("accept", "application/json")
+                .asJson();
 
-	/**
-	 * @return the account
-	 */
-	public Account getAccount() {
-		return this.account;
-	}
+        if (deleteReponse.getStatus() / 100 != 2) {
+            throw new MailchimpAPIException(deleteReponse.getBody().getObject());
+        }
+    }
 
-	/**
-	 * Set the account of this com.github.alexanderwe.bananaj.connection.
-	 */
-	private void setAccount() throws Exception {
-		Account account;
-		JSONObject jsonAPIROOT = new JSONObject(do_Get(new URL(apiendpoint),getApikey()));
-		JSONObject contact = jsonAPIROOT.getJSONObject("contact");
-		account = new Account(this, jsonAPIROOT.getString("account_id"),
-				jsonAPIROOT.getString("account_name"),
-				contact.getString("company"),
-				contact.getString("addr1"),
-				contact.getString("addr2"),
-				contact.getString("city"),
-				contact.getString("state"),
-				contact.getString("zip"),
-				contact.getString("country"),
-				DateConverter.getInstance().createDateFromISO8601(jsonAPIROOT.getString("last_login")),
-				jsonAPIROOT.getInt("total_subscribers"),
-				jsonAPIROOT);
-		this.account = account;
-	}
+    /**
+     * Get all automations from mailchimp account
+     *
+     * @return ArrayList containing all automations
+     * @throws Exception
+     */
+    public Automations getAutomations() throws Exception {
+        HttpResponse<Automations> automationsHttpResponse = Unirest.get(this.getAutomationendpoint())
+                .header("Authorization", this.getApikey())
+                .asObject(Automations.class);
+        return automationsHttpResponse.getBody();
+    }
+
+    /**
+     * Get an specific automation
+     *
+     * @param id
+     * @return an Automation object
+     * @throws Exception
+     */
+    public Automation getAutomation(String id) throws Exception {
+        HttpResponse<Automation> automationHttpResponse = Unirest.get(this.getAutomationendpoint())
+                .header("Authorization", this.getApikey())
+                .asObject(Automation.class);
+        return automationHttpResponse.getBody();
+    }
+
+    /**
+     * @return the server
+     */
+    public String getServer() {
+        return this.server;
+    }
+
+    /**
+     * @return the apikey
+     */
+    public String getApikey() {
+        return this.apikey;
+    }
+
+    /**
+     * @return the apiendpoint
+     */
+    public String getApiendpoint() {
+        return this.apiendpoint;
+    }
+
+    /**
+     * @return the lISTENDPOINT
+     */
+    public String getListendpoint() {
+        return this.listendpoint;
+    }
+
+    /**
+     * @return the campaignendpoint
+     */
+    public String getCampaignendpoint() {
+        return this.campaignendpoint;
+    }
+
+    /**
+     * @return the templateendpoint
+     */
+    public String getTemplateendpoint() {
+        return this.templateendpoint;
+    }
+
+    /**
+     * @return the automationendpoint
+     */
+    public String getAutomationendpoint() {
+        return this.automationendpoint;
+    }
+
+    /**
+     * @return the filemanagerfolderendpoint
+     */
+    public String getFilemanagerfolderendpoint() {
+        return this.filemanagerfolderendpoint;
+    }
+
+
+    public String getFilesendpoint() {
+        return filesendpoint;
+    }
+
+    public String getCampaignfolderendpoint() {
+        return this.campaignfolderendpoint;
+    }
+
+    public String getTemplatefolderendpoint() {
+        return this.templatefolderendpoint;
+    }
+
+    /**
+     * @return the account
+     */
+    public Account getAccount() {
+        return this.account;
+    }
+
+    /**
+     * Set the account of this com.github.alexanderwe.bananaj.connection.
+     */
+    private void setAccount() throws Exception {
+        Account account;
+        JSONObject jsonAPIROOT = new JSONObject(do_Get(new URL(apiendpoint), getApikey()));
+        JSONObject contact = jsonAPIROOT.getJSONObject("contact");
+        account = new Account(this, jsonAPIROOT.getString("account_id"),
+                jsonAPIROOT.getString("account_name"),
+                contact.getString("company"),
+                contact.getString("addr1"),
+                contact.getString("addr2"),
+                contact.getString("city"),
+                contact.getString("state"),
+                contact.getString("zip"),
+                contact.getString("country"),
+                DateConverter.getInstance().createDateFromISO8601(jsonAPIROOT.getString("last_login")),
+                jsonAPIROOT.getInt("total_subscribers"),
+                jsonAPIROOT);
+        this.account = account;
+    }
 }

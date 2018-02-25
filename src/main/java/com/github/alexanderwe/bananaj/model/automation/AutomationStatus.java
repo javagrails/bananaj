@@ -4,9 +4,13 @@
  */
 package com.github.alexanderwe.bananaj.model.automation;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public enum AutomationStatus {
 
-	SAVE("save"),PAUSED("paused"),SENDING("sending");
+	@JsonProperty("save") SAVE("save"),
+    @JsonProperty("paused") PAUSED("paused"),
+    @JsonProperty("sending") SENDING("sending");
 
 	
 	private String stringRepresentation;

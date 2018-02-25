@@ -1,5 +1,6 @@
 package com.github.alexanderwe.bananaj.model.list.segment;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -11,54 +12,31 @@ import java.util.List;
  */
 public class Options {
 
-    private MatchType matchType;
-    private List<Condition> conditions;
-
-
-    public Options(){
-
-    }
-
-    public Options (MatchType matchType, ArrayList<Condition> conditions){
-        setMatchType(matchType);
-        setConditions(conditions);
-    }
-
+    @JsonProperty
+    private MatchType match;
+    @JsonProperty
+    private List<Object> conditions; //TODO: implement
 
     public void addCondition(Condition condition){
         this.conditions.add(condition);
     }
 
     public MatchType getMatchType() {
-        return matchType;
+        return match;
     }
 
-    public void setMatchType(MatchType matchType) {
-        this.matchType = matchType;
+    public void setMatchType(MatchType match) {
+        this.match = match;
     }
 
-    public List<Condition> getConditions() {
+    public List<Object> getConditions() {
         return conditions;
     }
 
-    public void setConditions(ArrayList<Condition> conditions) {
+    public void setConditions(ArrayList<Object> conditions) {
         this.conditions = conditions;
     }
 
-    public JSONObject getJsonRepresentation(){
-        JSONObject options = new JSONObject();
-        options.put("match", this.getMatchType().getStringRepresentation());
-
-        JSONArray conditions = new JSONArray();
-
-        for(Condition condition: this.getConditions()){
-            conditions.put(condition.getJsonRepresentation());
-        }
-
-        options.put("conditions",conditions);
-        System.out.println(options);
-        return options;
-    }
 
     @Override
     public String toString(){

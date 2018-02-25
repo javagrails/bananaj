@@ -2,7 +2,13 @@ package com.github.alexanderwe.bananaj.model.list.member;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.github.alexanderwe.bananaj.connection.MailChimpConnection;
+import com.github.alexanderwe.bananaj.exceptions.MailchimpAPIException;
 import com.github.alexanderwe.bananaj.model.Link;
+import com.mashape.unirest.http.HttpResponse;
+import com.mashape.unirest.http.JsonNode;
+import com.mashape.unirest.http.Unirest;
+import com.mashape.unirest.http.exceptions.UnirestException;
 
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
@@ -11,6 +17,8 @@ import java.time.OffsetDateTime;
 public class NewMember {
 
     //TODO: Add merge fields
+
+    private MailChimpConnection connection;
 
     @JsonProperty
     String id;
@@ -21,7 +29,7 @@ public class NewMember {
     @JsonProperty
     String email_type; //TODO: ENUM
     @JsonProperty
-    MemberStatus status; //TODO: ENUM
+    MemberStatus status;
     @JsonProperty
     String unsubscribe_reason;
     @JsonProperty
@@ -56,6 +64,84 @@ public class NewMember {
     String list_id;
     @JsonProperty
     Link[] _links;
+
+    /**
+     * Update the mailChimpList of this member
+     * @param list_id
+     * @throws Exception
+     */
+    public void changeList(String list_id) throws Exception{
+        NewMember member = new NewMember();
+        member.setList_id(list_id);
+
+        HttpResponse<JsonNode> postReponse = Unirest.patch(this.connection.getListendpoint()+"/"+this.getList_id() + "/members/"+this.getId())
+                .header("Authorization", this.connection.getApikey())
+                .header("accept", "application/json")
+                .header("Content-Type", "application/json")
+                .body(member)
+                .asJson();
+
+        if (postReponse.getStatus() / 100 != 2) {
+            throw new MailchimpAPIException(postReponse.getBody().getObject());
+        }
+        this.list_id = list_id;
+    }
+
+
+    /**
+     * Update the mailChimpList of this member
+     * @param email_address
+     * @throws Exception
+     */
+    public void changeEmailAddress(String email_address) throws Exception{
+        NewMember member = new NewMember();
+        member.setEmail_address(email_address);
+
+        HttpResponse<JsonNode> postReponse = Unirest.patch(this.connection.getListendpoint()+"/"+this.getList_id() + "/members/"+this.getId())
+                .header("Authorization", this.connection.getApikey())
+                .header("accept", "application/json")
+                .header("Content-Type", "application/json")
+                .body(member)
+                .asJson();
+
+        if (postReponse.getStatus() / 100 != 2) {
+            throw new MailchimpAPIException(postReponse.getBody().getObject());
+        }
+        this.email_address = email_address;
+    }
+
+
+    /**
+     * Update the mailChimpList of this member
+     * @param memberStatus
+     * @throws Exception
+     */
+    public void changeMemberStatus(MemberStatus memberStatus) throws Exception{
+        NewMember member = new NewMember();
+        member.setStatus(memberStatus);
+
+        HttpResponse<JsonNode> postReponse = Unirest.patch(this.connection.getListendpoint()+"/"+this.getList_id() + "/members/"+this.getId())
+                .header("Authorization", this.connection.getApikey())
+                .header("accept", "application/json")
+                .header("Content-Type", "application/json")
+                .body(member)
+                .asJson();
+
+        if (postReponse.getStatus() / 100 != 2) {
+            throw new MailchimpAPIException(postReponse.getBody().getObject());
+        }
+        this.status = memberStatus;
+    }
+
+
+    public Activities getActivities() throws UnirestException {
+        System.out.println("List id:" + this.getList_id());
+        System.out.println("id:" + this.getId());
+        HttpResponse<Activities> memberActivitiesHttpResponse = Unirest.get(this.connection.getListendpoint() + "/" + this.getList_id() + "/members/"+this.getId()+"/activity")
+                .header("Authorization", this.connection.getApikey())
+                .asObject(Activities.class);
+        return memberActivitiesHttpResponse.getBody();
+    }
 
     public String getId() {
         return id;
@@ -234,5 +320,9 @@ public class NewMember {
 
     public void set_links(Link[] _links) {
         this._links = _links;
+    }
+
+    public void setConnection(MailChimpConnection connection) {
+        this.connection = connection;
     }
 }

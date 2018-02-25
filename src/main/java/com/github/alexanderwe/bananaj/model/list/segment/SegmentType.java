@@ -1,15 +1,20 @@
 package com.github.alexanderwe.bananaj.model.list.segment;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 /**
  * Created by alexanderweiss on 04.02.16.
  */
 public enum SegmentType {
 
-    STATIC("static"), FUZZY("fuzzy"), ABSPLIT("absplit"), SAVED("saved");
+    @JsonProperty("static") STATIC("static"),
+    @JsonProperty("fuzzy") FUZZY("fuzzy"),
+    @JsonProperty("absplit") ABSPLIT("absplit"),
+    @JsonProperty("saved") SAVED("saved");
 
     private String stringRepresentation;
 
-    SegmentType(String stringRepresentation ){
+    SegmentType(String stringRepresentation) {
         setStringRepresentation(stringRepresentation);
     }
 

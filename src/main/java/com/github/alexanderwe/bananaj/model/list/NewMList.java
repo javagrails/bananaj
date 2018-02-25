@@ -1,6 +1,7 @@
 package com.github.alexanderwe.bananaj.model.list;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.github.alexanderwe.bananaj.connection.MailChimpConnection;
 import com.github.alexanderwe.bananaj.exceptions.FileFormatException;
@@ -10,8 +11,8 @@ import com.github.alexanderwe.bananaj.model.campaign.NewCampaignDefaults;
 import com.github.alexanderwe.bananaj.model.list.member.MemberStatus;
 import com.github.alexanderwe.bananaj.model.list.member.Members;
 import com.github.alexanderwe.bananaj.model.list.member.NewMember;
-import com.github.alexanderwe.bananaj.model.list.segment.*;
-import com.github.alexanderwe.bananaj.utils.DateConverter;
+import com.github.alexanderwe.bananaj.model.list.segment.Segment;
+import com.github.alexanderwe.bananaj.model.list.segment.Segments;
 import com.github.alexanderwe.bananaj.utils.FileInspector;
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.JsonNode;
@@ -22,7 +23,6 @@ import jxl.CellType;
 import jxl.Sheet;
 import jxl.Workbook;
 import jxl.read.biff.BiffException;
-import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.File;
@@ -30,9 +30,13 @@ import java.io.IOException;
 import java.net.URL;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class NewMList {
 
 
@@ -99,45 +103,60 @@ public class NewMList {
     List<Link> _links;
 
 
-
     /**
      * Get all members in this list
-     * @param count x first members
+     *
+     * @param count  x first members
      * @param offset skip x first members
      * @return
      * @throws Exception
      */
-    public Members getMembers(int count, int offset) throws Exception{
+    public Members getMembers(int count, int offset) throws Exception {
 
         String url = null;
-        if(count != 0){
-            url = this.connection.getListendpoint() +"/"+this.getId()+"/members?count="+count+"&offset="+offset;
+        if (count != 0) {
+            url = this.connection.getListendpoint() + "/" + this.getId() + "/members?count=" + count + "&offset=" + offset;
         } else {
-            url = this.connection.getListendpoint() +"/"+this.getId()+"/members?count="+this.getStats().getMember_count()+"&offset="+offset;
+            url = this.connection.getListendpoint() + "/" + this.getId() + "/members?count=" + this.getStats().getMember_count() + "&offset=" + offset;
         }
 
         HttpResponse<Members> membersHttpResponse = Unirest.get(url)
                 .header("Authorization", this.connection.getApikey())
                 .asObject(Members.class);
+
+
+        Members members = membersHttpResponse.getBody();
+
+
+        members.getMembers().forEach(member -> {
+            member.setConnection(this.getConnection());
+        });
+
+
         return membersHttpResponse.getBody();
     }
 
     /**
      * Get a single member from list
+     *
      * @param memberID
      * @return
      * @throws Exception
      */
-    public NewMember getMember(String memberID) throws Exception{
+    public NewMember getMember(String memberID) throws Exception {
 
-        HttpResponse<NewMember> newMemberHttpResponse = Unirest.get(this.connection.getListendpoint() +"/"+this.getId()+"/members/"+memberID)
+        HttpResponse<NewMember> newMemberHttpResponse = Unirest.get(this.connection.getListendpoint() + "/" + this.getId() + "/members/" + memberID)
                 .header("Authorization", this.connection.getApikey())
                 .asObject(NewMember.class);
-        return newMemberHttpResponse.getBody();
+
+        NewMember member = newMemberHttpResponse.getBody();
+        member.setConnection(this.getConnection());
+        return member;
     }
 
     /**
      * Add a member with the minimum of information
+     *
      * @param status
      * @param emailAddress
      */
@@ -147,7 +166,7 @@ public class NewMList {
         newMember.setEmail_address(emailAddress);
         newMember.setStatus(status);
 
-        HttpResponse<JsonNode>  postReponse = Unirest.post(this.connection.getListendpoint()+"/"+this.getId()+"/members")
+        HttpResponse<JsonNode> postReponse = Unirest.post(this.connection.getListendpoint() + "/" + this.getId() + "/members")
                 .header("Authorization", this.connection.getApikey())
                 .header("accept", "application/json")
                 .header("Content-Type", "application/json")
@@ -155,7 +174,7 @@ public class NewMList {
                 .asJson();
 
 
-        if (postReponse.getStatus()/ 100 != 2) {
+        if (postReponse.getStatus() / 100 != 2) {
             throw new MailchimpAPIException(postReponse.getBody().getObject());
         }
 
@@ -165,21 +184,21 @@ public class NewMList {
 
     /**
      * Add a member with first and last name
+     *
      * @param status
      * @param emailAddress
      * @param merge_fields_values
-     * @throws Exception
-     * TODO:
+     * @throws Exception TODO:
      */
-    public void addMember(MemberStatus status, String emailAddress, HashMap<String, Object> merge_fields_values) throws Exception{
-        URL url = new URL(connection.getListendpoint()+"/"+this.getId()+"/members");
+    public void addMember(MemberStatus status, String emailAddress, HashMap<String, Object> merge_fields_values) throws Exception {
+        URL url = new URL(connection.getListendpoint() + "/" + this.getId() + "/members");
 
         JSONObject member = new JSONObject();
         JSONObject merge_fields = new JSONObject();
 
         Iterator it = merge_fields_values.entrySet().iterator();
         while (it.hasNext()) {
-            Map.Entry pair = (Map.Entry)it.next();
+            Map.Entry pair = (Map.Entry) it.next();
             it.remove(); // avoids a ConcurrentModificationException
             merge_fields.put(pair.getKey().toString(), pair.getValue());
         }
@@ -187,7 +206,7 @@ public class NewMList {
         member.put("status", status.getStringRepresentation());
         member.put("email_address", emailAddress);
         member.put("merge_fields", merge_fields);
-        getConnection().do_Post(new URL(connection.getListendpoint()+"/"+this.getId()+"/members"),member.toString(),connection.getApikey());
+        getConnection().do_Post(new URL(connection.getListendpoint() + "/" + this.getId() + "/members"), member.toString(), connection.getApikey());
         int updateMemberCount = this.stats.getMember_count();
         this.stats.setMember_count(++updateMemberCount);
     }
@@ -197,7 +216,7 @@ public class NewMList {
         //TODO fully implement read from xls
         String extension = FileInspector.getInstance().getExtension(file);
 
-        if(extension.equals(".xls")|| extension.equals(".xlsx")){
+        if (extension.equals(".xls") || extension.equals(".xlsx")) {
             Workbook w;
             try {
                 w = Workbook.getWorkbook(file);
@@ -231,19 +250,20 @@ public class NewMList {
 
     /**
      * Delete a member from list
+     *
      * @param memberID
      * @throws Exception
      */
     public void deleteMember(String memberID) throws MailchimpAPIException, UnirestException {
 
-        HttpResponse<JsonNode>  postReponse = Unirest.delete(this.connection.getListendpoint()+"/"+this.getId()+"/members/"+memberID)
+        HttpResponse<JsonNode> deleteReponse = Unirest.delete(this.connection.getListendpoint() + "/" + this.getId() + "/members/" + memberID)
                 .header("Authorization", this.connection.getApikey())
                 .header("accept", "application/json")
                 .asJson();
 
 
-        if (postReponse.getStatus()/ 100 != 2) {
-            throw new MailchimpAPIException(postReponse.getBody().getObject());
+        if (deleteReponse.getStatus() / 100 != 2) {
+            throw new MailchimpAPIException(deleteReponse.getBody().getObject());
         }
 
         int updateMemberCount = this.stats.getMember_count();
@@ -252,24 +272,26 @@ public class NewMList {
 
     /**
      * Get the growth history of this list
+     *
      * @return a growth history
      * @throws Exception
      */
-    public GrowthHistory getGrowthHistory() throws Exception{
+    public GrowthHistory getGrowthHistory() throws Exception {
 
-        HttpResponse<GrowthHistory> growthHistoryHttpResponse = Unirest.get(this.connection.getListendpoint() +"/"+this.getId()+"/growth-history")
+        HttpResponse<GrowthHistory> growthHistoryHttpResponse = Unirest.get(this.connection.getListendpoint() + "/" + this.getId() + "/growth-history")
                 .header("Authorization", this.connection.getApikey())
                 .asObject(GrowthHistory.class);
-            return  growthHistoryHttpResponse.getBody();
+        return growthHistoryHttpResponse.getBody();
     }
 
     /**
      * Get all segments of this list
+     *
      * @return
      * @throws Exception
      */
-	public Segments getSegments() throws Exception {
-        HttpResponse<Segments> segmentsHttpResponse = Unirest.get(this.connection.getListendpoint() +"/"+this.getId()+"/segments")
+    public Segments getSegments() throws Exception {
+        HttpResponse<Segments> segmentsHttpResponse = Unirest.get(this.connection.getListendpoint() + "/" + this.getId() + "/segments")
                 .header("Authorization", this.connection.getApikey())
                 .asObject(Segments.class);
         return segmentsHttpResponse.getBody();
@@ -277,17 +299,17 @@ public class NewMList {
 
     /**
      * Get a specific segment of this list
+     *
      * @param segmentID
      * @return
      * @throws Exception
      */
     public Segment getSegment(String segmentID) throws Exception {
-        HttpResponse<Segment> segmentHttpResponse = Unirest.get(this.connection.getListendpoint() +"/"+this.getId()+"/growth-history")
+        HttpResponse<Segment> segmentHttpResponse = Unirest.get(this.connection.getListendpoint() + "/" + this.getId() + "/growth-history")
                 .header("Authorization", this.connection.getApikey())
                 .asObject(Segment.class);
-        return  segmentHttpResponse.getBody();
+        return segmentHttpResponse.getBody();
     }
-
 
 
     public String getId() {

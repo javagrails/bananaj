@@ -379,7 +379,7 @@ public class MailChimpList extends MailchimpObject {
 		JSONObject segment = new JSONObject();
 		segment.put("name", name);
 
-		segment.put("options",option.getJsonRepresentation());
+		//segment.put("options",option.getJsonRepresentation());
 		System.out.println(segment.toString());
 
 		getConnection().do_Post(new URL(connection.getListendpoint()+"/"+this.getId()+"/segments"),segment.toString(),connection.getApikey());

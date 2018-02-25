@@ -41,24 +41,14 @@ public class Segment extends MailchimpObject {
     @JsonProperty
     private LocalDateTime updated_at;
     @JsonProperty
+    private Options options;
+    @JsonProperty
     private String list_id;
     @JsonProperty
     private List<Link> _links;
 
-
-
-    private Options options;
     private MailChimpConnection connection;
 
-    /**
-     * Used when created a Segment locally with the Builder class
-     * @see Builder
-     * @param b
-     */
-    public Segment(Builder b){
-        this.name = b.name;
-        setJSONRepresentation(b.jsonRepresentation);
-    }
 
     /**
      * Add a member to this segment, only NON STATIC segments allowed
@@ -119,8 +109,8 @@ public class Segment extends MailchimpObject {
                 Object value = memberMergeTags.get(key);
                 merge_fields.put(key, value);
             }
-            Member member = new Member(memberDetail.getString("id"),connection.getList(this.getList_id()),merge_fields,memberDetail.getString("unique_email_id"), memberDetail.getString("email_address"), MemberStatus.valueOf(memberDetail.getString("status").toUpperCase()),memberDetail.getString("timestamp_signup"),memberDetail.getString("ip_signup"),memberDetail.getString("timestamp_opt"),memberDetail.getString("ip_opt"),memberStats.getDouble("avg_open_rate"),memberStats.getDouble("avg_click_rate"),memberDetail.getString("last_changed"),this.getConnection(),memberDetail);
-            members.add(member);
+            //Member member = new Member(memberDetail.getString("id"),connection.getList(this.getList_id()),merge_fields,memberDetail.getString("unique_email_id"), memberDetail.getString("email_address"), MemberStatus.valueOf(memberDetail.getString("status").toUpperCase()),memberDetail.getString("timestamp_signup"),memberDetail.getString("ip_signup"),memberDetail.getString("timestamp_opt"),memberDetail.getString("ip_opt"),memberStats.getDouble("avg_open_rate"),memberStats.getDouble("avg_click_rate"),memberDetail.getString("last_changed"),this.getConnection(),memberDetail);
+            //members.add(member);
 
         }
         return members;
@@ -214,8 +204,6 @@ public class Segment extends MailchimpObject {
             return this;
         }
 
-        public Segment build() {
-            return new Segment(this);
-        }
+
     }
 }
