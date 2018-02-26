@@ -8,7 +8,7 @@ src/test/*
 
 Test.java
 
-out/**
+out/*
 .gradle
 /build/
 
