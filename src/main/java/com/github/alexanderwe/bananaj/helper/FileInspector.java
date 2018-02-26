@@ -1,4 +1,4 @@
-package com.github.alexanderwe.bananaj.utils;
+package com.github.alexanderwe.bananaj.helper;
 
 import org.apache.commons.codec.binary.Base64;
 

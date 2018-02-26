@@ -2,22 +2,21 @@ package com.github.alexanderwe.bananaj.connection;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.github.alexanderwe.bananaj.exceptions.MailchimpAPIException;
+import com.github.alexanderwe.bananaj.helper.DateConverter;
 import com.github.alexanderwe.bananaj.model.automation.Automation;
-import com.github.alexanderwe.bananaj.model.automation.AutomationStatus;
 import com.github.alexanderwe.bananaj.model.automation.Automations;
 import com.github.alexanderwe.bananaj.model.campaign.*;
 import com.github.alexanderwe.bananaj.model.list.MailChimpList;
 import com.github.alexanderwe.bananaj.model.list.MailchimpLists;
-import com.github.alexanderwe.bananaj.model.list.NewMList;
 import com.github.alexanderwe.bananaj.model.template.Template;
 import com.github.alexanderwe.bananaj.model.template.TemplateFolder;
 import com.github.alexanderwe.bananaj.model.template.TemplateFolders;
 import com.github.alexanderwe.bananaj.model.template.Templates;
-import com.github.alexanderwe.bananaj.utils.DateConverter;
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.JsonNode;
 import com.mashape.unirest.http.ObjectMapper;
 import com.mashape.unirest.http.Unirest;
+import com.mashape.unirest.http.exceptions.UnirestException;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -25,6 +24,8 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+
+//TODO: Idea, implement a "update" function in every object so that updates of this object locally can get cast to mailchimp
 
 /**
  * Class for the com.github.alexanderwe.bananaj.connection to mailchimp servers. Used to get lists from mailchimp account.
@@ -93,9 +94,9 @@ public class MailChimpConnection extends Connection {
      * Get all lists in your account
      *
      * @return Arraylist containing all lists
-     * @throws Exception
+     * @throws UnirestException
      */
-    public MailchimpLists getLists() throws Exception {
+    public MailchimpLists getLists() throws UnirestException {
 
         HttpResponse<MailchimpLists> mailchimpListsHttpResponse = Unirest.get(this.listendpoint)
                 .header("Authorization", this.apikey)
@@ -114,14 +115,18 @@ public class MailChimpConnection extends Connection {
      * Get a specific mailchimp list
      *
      * @return a Mailchimp list object
-     * @throws Exception
+     * @throws UnirestException
      */
-    public NewMList getList(String listID) throws Exception {
+    public MailChimpList getList(String listID) throws UnirestException {
 
-        HttpResponse<NewMList> mailchimpListsHttpResponse = Unirest.get(this.listendpoint + "/" + listID)
+        HttpResponse<MailChimpList> mailchimpListHttpResponse = Unirest.get(this.listendpoint + "/" + listID)
                 .header("Authorization", this.apikey)
-                .asObject(NewMList.class);
-        return mailchimpListsHttpResponse.getBody();
+                .asObject(MailChimpList.class);
+
+        MailChimpList mailChimpList = mailchimpListHttpResponse.getBody();
+        mailChimpList.setConnection(this);
+
+        return mailChimpList;
     }
 
 
@@ -129,11 +134,12 @@ public class MailChimpConnection extends Connection {
      * Create a new list in your mailchimp account
      *
      * @param listName
+     * @throws MailchimpAPIException
+     * @throws UnirestException
      */
-    public void createList(String listName, String permission_reminder, boolean email_type_option, NewCampaignDefaults campaignDefaults) throws Exception {
+    public void createList(String listName, String permission_reminder, boolean email_type_option, NewCampaignDefaults campaignDefaults) throws MailchimpAPIException, UnirestException {
 
-
-        NewMList list = new NewMList();
+        MailChimpList list = new MailChimpList();
         list.setName(listName);
         list.setPermission_reminder(permission_reminder);
         list.setEmail_type_option(email_type_option);
@@ -146,7 +152,6 @@ public class MailChimpConnection extends Connection {
                 .body(list)
                 .asJson();
 
-
         if (postReponse.getStatus() / 100 != 2) {
             throw new MailchimpAPIException(postReponse.getBody().getObject());
         }
@@ -156,9 +161,10 @@ public class MailChimpConnection extends Connection {
      * Delete a list from your account
      *
      * @param listID
-     * @throws Exception
+     * @throws MailchimpAPIException
+     * @throws UnirestException
      */
-    public void deleteList(String listID) throws Exception {
+    public void deleteList(String listID) throws MailchimpAPIException, UnirestException  {
 
         HttpResponse<JsonNode> deleteReponse = Unirest.delete(this.getListendpoint() + "/" + listID)
                 .header("Authorization", this.getApikey())
@@ -269,8 +275,10 @@ public class MailChimpConnection extends Connection {
      * Get all template folders from MailChimp
      *
      * @return
+     * @throws UnirestException
      */
-    public CampaignFolders getCampaignFolders() throws Exception {
+    public CampaignFolders getCampaignFolders() throws UnirestException {
+
         HttpResponse<CampaignFolders> campaignFoldersHttpResponse = Unirest.get(this.getCampaignfolderendpoint())
                 .header("Authorization", this.getApikey())
                 .asObject(CampaignFolders.class);
@@ -282,8 +290,10 @@ public class MailChimpConnection extends Connection {
      *
      * @param folder_id
      * @return
+     * @throws UnirestException
      */
-    public CampaignFolder getCampaignFolder(String folder_id) throws Exception {
+    public CampaignFolder getCampaignFolder(String folder_id) throws UnirestException {
+
         HttpResponse<CampaignFolder> campaignFoldersHttpResponse = Unirest.get(this.getCampaignfolderendpoint() + "/" + folder_id)
                 .header("Authorization", this.getApikey())
                 .asObject(CampaignFolder.class);
@@ -294,11 +304,13 @@ public class MailChimpConnection extends Connection {
      * Add a template folder with a specific name
      *
      * @param name
+     * @throws MailchimpAPIException
+     * @throws UnirestException
      */
-    public void addCampaignFolder(String name) throws Exception {
+    public void addCampaignFolder(String name) throws MailchimpAPIException, UnirestException {
+
         CampaignFolder campaignFolder = new CampaignFolder();
         campaignFolder.setName(name);
-
 
         HttpResponse<JsonNode> postReponse = Unirest.post(this.getCampaignfolderendpoint())
                 .header("Authorization", this.getApikey())
@@ -316,8 +328,10 @@ public class MailChimpConnection extends Connection {
      * Delete a specific template folder
      *
      * @param folder_id
+     * @throws MailchimpAPIException
+     * @throws UnirestException
      */
-    public void deleteCampaignFolder(String folder_id) throws Exception {
+    public void deleteCampaignFolder(String folder_id) throws MailchimpAPIException, UnirestException {
         HttpResponse<JsonNode> deleteReponse = Unirest.delete(this.getListendpoint() + "/" + folder_id)
                 .header("Authorization", this.getApikey())
                 .header("accept", "application/json")
@@ -335,6 +349,7 @@ public class MailChimpConnection extends Connection {
      * @throws Exception * TODO add campaignsettings
      */
     public List<Campaign> getCampaigns() throws Exception {
+
         List<Campaign> campaigns = new ArrayList<Campaign>();
         // parse response
         JSONObject jsonCampaigns = new JSONObject(do_Get(new URL(campaignendpoint), getApikey()));
@@ -509,7 +524,7 @@ public class MailChimpConnection extends Connection {
             template.setConnection(this);
         });
 
-        return templates ;
+        return templates;
     }
 
     /**

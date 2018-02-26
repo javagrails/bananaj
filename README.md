@@ -180,7 +180,7 @@ Every endpoint supports GET, POST, and DELETE requests. So it is possible to ful
 |       |-- Template.java
 |       |-- TemplateFolder.java
 |       `-- TemplateType.java
-`-- com.github.alexanderwe.bananaj.utils
+`-- com.github.alexanderwe.bananaj.helper
     |-- DateConverter.java
     |-- EmailValidator.java
     `-- FileInspector.java

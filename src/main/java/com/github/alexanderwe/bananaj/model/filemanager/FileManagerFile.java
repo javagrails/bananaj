@@ -3,7 +3,7 @@ package com.github.alexanderwe.bananaj.model.filemanager;
 import com.github.alexanderwe.bananaj.connection.MailChimpConnection;
 import com.github.alexanderwe.bananaj.model.MailchimpObject;
 import org.json.JSONObject;
-import com.github.alexanderwe.bananaj.utils.FileInspector;
+import com.github.alexanderwe.bananaj.helper.FileInspector;
 
 import java.io.File;
 import java.io.FileOutputStream;

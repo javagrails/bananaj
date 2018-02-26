@@ -4,8 +4,8 @@ import com.github.alexanderwe.bananaj.connection.MailChimpConnection;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import com.github.alexanderwe.bananaj.utils.DateConverter;
-import com.github.alexanderwe.bananaj.utils.FileInspector;
+import com.github.alexanderwe.bananaj.helper.DateConverter;
+import com.github.alexanderwe.bananaj.helper.FileInspector;
 
 import java.io.File;
 import java.net.MalformedURLException;

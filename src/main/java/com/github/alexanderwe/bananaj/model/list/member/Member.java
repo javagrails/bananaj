@@ -1,228 +1,329 @@
-/**
- * @author alexanderweiss
- * @date 06.11.2015
- */
 package com.github.alexanderwe.bananaj.model.list.member;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.github.alexanderwe.bananaj.connection.MailChimpConnection;
-import com.github.alexanderwe.bananaj.exceptions.EmailException;
-import com.github.alexanderwe.bananaj.model.MailchimpObject;
-import com.github.alexanderwe.bananaj.model.list.MailChimpList;
-import org.json.JSONObject;
-import com.github.alexanderwe.bananaj.utils.EmailValidator;
+import com.github.alexanderwe.bananaj.exceptions.MailchimpAPIException;
+import com.github.alexanderwe.bananaj.model.Link;
+import com.mashape.unirest.http.HttpResponse;
+import com.mashape.unirest.http.JsonNode;
+import com.mashape.unirest.http.Unirest;
+import com.mashape.unirest.http.exceptions.UnirestException;
 
-import java.net.URL;
-import java.util.*;
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.util.LinkedHashMap;
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public class Member {
+
+    //TODO: Add merge fields
+
+    private MailChimpConnection connection;
+
+    @JsonProperty
+    String id;
+    @JsonProperty
+    String email_address;
+    @JsonProperty
+    String unique_email_id;
+    @JsonProperty
+    String email_type; //TODO: ENUM
+    @JsonProperty
+    MemberStatus status;
+    @JsonProperty
+    String unsubscribe_reason;
+    @JsonProperty
+    LinkedHashMap<String, String> merge_fields;
+    @JsonProperty
+    Stats stats;
+    @JsonProperty
+    Object interests;
+    @JsonProperty
+    String ip_signup;
+    @JsonProperty
+    String timestamp_signup;
+    @JsonProperty
+    String ip_opt;
+    @JsonProperty
+    String timestamp_opt;
+    @JsonProperty
+    String member_rating;
+    @JsonProperty
+    LocalDateTime last_changed;
+    @JsonProperty
+    String language;
+    @JsonProperty
+    boolean vip;
+    @JsonProperty
+    String email_client;
+    @JsonProperty
+    Location location;
+    @JsonProperty
+    Note last_note;
+    @JsonProperty
+    String list_id;
+    @JsonProperty
+    Link[] _links;
+
+    /**
+     * Update the mailChimpList of this member
+     * @param list_id
+     * @throws Exception
+     */
+    public void changeList(String list_id) throws Exception{
+        Member member = new Member();
+        member.setList_id(list_id);
+
+        HttpResponse<JsonNode> postReponse = Unirest.patch(this.connection.getListendpoint()+"/"+this.getList_id() + "/members/"+this.getId())
+                .header("Authorization", this.connection.getApikey())
+                .header("accept", "application/json")
+                .header("Content-Type", "application/json")
+                .body(member)
+                .asJson();
+
+        if (postReponse.getStatus() / 100 != 2) {
+            throw new MailchimpAPIException(postReponse.getBody().getObject());
+        }
+        this.list_id = list_id;
+    }
 
 
-/**
- * Object for representing a mailchimp member
- * @author alexanderweiss
- *
- */
-public class Member extends MailchimpObject{
+    /**
+     * Update the mailChimpList of this member
+     * @param email_address
+     * @throws Exception
+     */
+    public void changeEmailAddress(String email_address) throws Exception{
+        Member member = new Member();
+        member.setEmail_address(email_address);
 
-	private MailChimpList mailChimpList;
-    private HashMap<String, Object> merge_fields;
-	private String unique_email_id;
-	private String email_address;
-	private MemberStatus status;
-	private String timestamp_signup;
-	private String timestamp_opt;
-	private String ip_signup;
-	private String ip_opt;
-	private double avg_open_rate;
-	private double avg_click_rate;
-	private String last_changed;
-	private List<Activity> memberActivities;
-	private MailChimpConnection connection;
+        HttpResponse<JsonNode> postReponse = Unirest.patch(this.connection.getListendpoint()+"/"+this.getList_id() + "/members/"+this.getId())
+                .header("Authorization", this.connection.getApikey())
+                .header("accept", "application/json")
+                .header("Content-Type", "application/json")
+                .body(member)
+                .asJson();
 
-
-	public Member(String id, MailChimpList mailChimpList, HashMap<String, Object> merge_fields, String unique_email_id, String email_address, MemberStatus status, String timestamp_signup, String ip_signup, String timestamp_opt, String ip_opt, double avg_open_rate, double avg_click_rate, String last_changed, MailChimpConnection connection, JSONObject jsonRepresentation){
-        super(id,jsonRepresentation);
-        this.mailChimpList = mailChimpList;
-        this.merge_fields = merge_fields;
-        this.unique_email_id = unique_email_id;
+        if (postReponse.getStatus() / 100 != 2) {
+            throw new MailchimpAPIException(postReponse.getBody().getObject());
+        }
         this.email_address = email_address;
+    }
+
+
+    /**
+     * Update the mailChimpList of this member
+     * @param memberStatus
+     * @throws Exception
+     */
+    public void changeMemberStatus(MemberStatus memberStatus) throws Exception{
+        Member member = new Member();
+        member.setStatus(memberStatus);
+
+        HttpResponse<JsonNode> postReponse = Unirest.patch(this.connection.getListendpoint()+"/"+this.getList_id() + "/members/"+this.getId())
+                .header("Authorization", this.connection.getApikey())
+                .header("accept", "application/json")
+                .header("Content-Type", "application/json")
+                .body(member)
+                .asJson();
+
+        if (postReponse.getStatus() / 100 != 2) {
+            throw new MailchimpAPIException(postReponse.getBody().getObject());
+        }
+        this.status = memberStatus;
+    }
+
+
+    public Activities getActivities() throws UnirestException {
+        System.out.println("List id:" + this.getList_id());
+        System.out.println("id:" + this.getId());
+        HttpResponse<Activities> memberActivitiesHttpResponse = Unirest.get(this.connection.getListendpoint() + "/" + this.getList_id() + "/members/"+this.getId()+"/activity")
+                .header("Authorization", this.connection.getApikey())
+                .asObject(Activities.class);
+        return memberActivitiesHttpResponse.getBody();
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getEmail_address() {
+        return email_address;
+    }
+
+    public void setEmail_address(String email_address) {
+        this.email_address = email_address;
+    }
+
+    public String getUnique_email_id() {
+        return unique_email_id;
+    }
+
+    public void setUnique_email_id(String unique_email_id) {
+        this.unique_email_id = unique_email_id;
+    }
+
+    public String getEmail_type() {
+        return email_type;
+    }
+
+    public void setEmail_type(String email_type) {
+        this.email_type = email_type;
+    }
+
+    public MemberStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(MemberStatus status) {
         this.status = status;
-        this.timestamp_signup = timestamp_signup;
-        this.timestamp_opt = timestamp_opt;
-        this.ip_signup = ip_signup;
-        this.ip_opt = ip_opt;
-        this.avg_open_rate = avg_open_rate;
-        this.avg_click_rate = avg_click_rate;
-        this.last_changed = last_changed;
-        this.connection = connection;
+    }
 
-		try{
-			//setMemberActivities(unique_email_id, mailChimpList.getId());
-		}catch (Exception e){
-			e.printStackTrace();
-		}
-	}
-	
-	/**
-	 * Update the mailChimpList of this member
-	 * @param listId
-	 * @throws Exception 
-	 */
-	public void changeList(String listId) throws Exception{
-		JSONObject updateMember = new JSONObject();
-		updateMember.put("list_id", listId);
-        this.getConnection().do_Patch(new URL("https://"+ mailChimpList.getConnection().getServer()+".api.mailchimp.com/3.0/lists/"+ getMailChimpList().getId()+"/members/"+getId()), updateMember.toString(),connection.getApikey());
-		//this.mailChimpList = this.getConnection().getList(listId);
-	}
-	
-	/**
-	 * Update the email Address of this member
-	 * @param emailAddress
-	 * @throws Exception
-	 */
-	public void changeEmailAddress(String emailAddress) throws Exception{
-		
-		EmailValidator validator = EmailValidator.getInstance();
-		if (validator.validate(emailAddress)) {
-			JSONObject updateMember = new JSONObject();
-			updateMember.put("email_Address", emailAddress);
-            this.getConnection().do_Patch(new URL("https://"+ mailChimpList.getConnection().getServer()+".api.mailchimp.com/3.0/lists/"+ getMailChimpList().getId()+"/members/"+getId()), updateMember.toString(),connection.getApikey());
-			this.email_address = emailAddress;
-		} else {
-		   throw new EmailException(emailAddress);
-		}
-	}
+    public String getUnsubscribe_reason() {
+        return unsubscribe_reason;
+    }
 
-	/**
-	 * Update the email address of this member
-	 * @param status
-	 * @throws Exception
-	 */
-	public void changeMemberStatus(MemberStatus status) throws Exception{
-		JSONObject updateMember = new JSONObject();
-		updateMember.put("status", status.getStringRepresentation());
-		this.getConnection().do_Patch(new URL("https://"+ mailChimpList.getConnection().getServer()+".api.mailchimp.com/3.0/lists/"+ getMailChimpList().getId()+"/members/"+getId()), updateMember.toString(),connection.getApikey());
-		this.status = status;
-	}
+    public void setUnsubscribe_reason(String unsubscribe_reason) {
+        this.unsubscribe_reason = unsubscribe_reason;
+    }
 
-	/**
-	 * @return the unique_email_id
-	 */
-	public String getUnique_email_id() {
-		return unique_email_id;
-	}
-
-	/**
-	 * @return the email_Address
-	 */
-	public String getEmail_address() {
-		return email_address;
-	}
-
-	/**
-	 * @return the status
-	 */
-	public MemberStatus getStatus() {
-		return status;
-	}
-
-	/**
-	 * @return the timestamp_signup
-	 */
-	public String getTimestamp_signup() {
-		return timestamp_signup;
-	}
-
-	/**
-	 * @return the timestamp_opt
-	 */
-	public String getTimestamp_opt() {
-		return timestamp_opt;
-	}
-
-	/**
-	 * @return the avg_open_rate
-	 */
-	public double getAvg_open_rate() {
-		return avg_open_rate;
-	}
-
-	/**
-	 * @return the avg_click_rate
-	 */
-	public double getAvg_click_rate() {
-		return avg_click_rate;
-	}
-
-	/**
-	 * @return the listId
-	 */
-	public MailChimpList getMailChimpList() {
-		return mailChimpList;
-	}
-
-	/**
-	 * @return the last_changed date
-	 */
-	public String getLast_changed() {
-		return last_changed;
-	}
-
-
-
-	/**
-	 * @return the member activities
-	 */
-	public List<Activity> getMemberActivities(){
-		return this.memberActivities;
-	}
-
-	/**
-	 * @return the MailChimp com.github.alexanderwe.bananaj.connection
-	 */
-	public MailChimpConnection getConnection() {
-		return connection;
-	}
-
-	/**
-	 * @return a HashMap of all merge fields
-	 */
-    public HashMap<String, Object> getMerge_fields() {
+    public  LinkedHashMap<String, String> getMerge_fields() {
         return merge_fields;
     }
 
-	/**
-	 * @return the sign up IP Address
-	 */
-	public String getIp_signup() {
-		return ip_signup;
-	}
+    public void setMerge_fields( LinkedHashMap<String, String> merge_fields) {
+        this.merge_fields = merge_fields;
+    }
 
-	/**
-	 * @return the opt-in IP Address
-	 */
-	public String getIp_opt() {
-		return ip_opt;
-	}
+    public Stats getStats() {
+        return stats;
+    }
 
-	@Override
-	public String toString(){
-		StringBuilder stringBuilder = new StringBuilder();
-		Iterator it = getMerge_fields().entrySet().iterator();
-		while (it.hasNext()) {
-			Map.Entry pair = (Map.Entry)it.next();
-			stringBuilder.append(pair.getKey()).append(": ").append(pair.getValue()).append("\n");
-			it.remove(); // avoids a ConcurrentModificationException
-		}
-
-		return System.lineSeparator()+"ID: " + this.getId() + "\t"+  System.getProperty("line.separator")
-				+ "Unique email Address: " + this.getUnique_email_id() + System.getProperty("line.separator")
-				+ "Email address: " + this.getEmail_address() + System.getProperty("line.separator")
-				+ "Status: " + this.getStatus().getStringRepresentation() + System.getProperty("line.separator")
-				+ "Sign_Up: " + this.getTimestamp_signup() + System.getProperty("line.separator")
-				+ "Opt_In: " + this.getTimestamp_opt() + System.lineSeparator()
-				+ "Last changed: " + this.getLast_changed() + System.lineSeparator()
-				+ stringBuilder.toString()
-				+ "_________________________________________________";
-	}
+    public void setStats(Stats stats) {
+        this.stats = stats;
+    }
 
 
+    public Object getInterests() {
+        return interests;
+    }
+
+    public void setInterests(Object interests) {
+        this.interests = interests;
+    }
+
+    public String getIp_signup() {
+        return ip_signup;
+    }
+
+    public void setIp_signup(String ip_signup) {
+        this.ip_signup = ip_signup;
+    }
+
+    public String getTimestamp_signup() {
+        return timestamp_signup;
+    }
+
+    public void setTimestamp_signup(String timestamp_signup) {
+        this.timestamp_signup = timestamp_signup;
+    }
+
+    public String getIp_opt() {
+        return ip_opt;
+    }
+
+    public void setIp_opt(String ip_opt) {
+        this.ip_opt = ip_opt;
+    }
+
+
+    public String getTimestamp_opt() {
+        return timestamp_opt;
+    }
+
+    public void setTimestamp_opt(String timestamp_opt) {
+        this.timestamp_opt = timestamp_opt;
+    }
+
+    public String getMember_rating() {
+        return member_rating;
+    }
+
+    public void setMember_rating(String member_rating) {
+        this.member_rating = member_rating;
+    }
+
+    public LocalDateTime getLast_changed() {
+        return last_changed;
+    }
+
+    public void setLast_changed(String last_changed) {
+        OffsetDateTime offsetDateTime = OffsetDateTime.parse(last_changed);
+        this.last_changed = offsetDateTime.toLocalDateTime();
+    }
+
+    public String getLanguage() {
+        return language;
+    }
+
+    public void setLanguage(String language) {
+        this.language = language;
+    }
+
+    public boolean isVip() {
+        return vip;
+    }
+
+    public void setVip(boolean vip) {
+        this.vip = vip;
+    }
+
+    public String getEmail_client() {
+        return email_client;
+    }
+
+    public void setEmail_client(String email_client) {
+        this.email_client = email_client;
+    }
+
+    public Location getLocation() {
+        return location;
+    }
+
+    public void setLocation(Location location) {
+        this.location = location;
+    }
+
+    public Note getLast_note() {
+        return last_note;
+    }
+
+    public void setLast_note(Note last_note) {
+        this.last_note = last_note;
+    }
+
+    public String getList_id() {
+        return list_id;
+    }
+
+    public void setList_id(String list_id) {
+        this.list_id = list_id;
+    }
+
+    public Link[] get_links() {
+        return _links;
+    }
+
+    public void set_links(Link[] _links) {
+        this._links = _links;
+    }
+
+    public void setConnection(MailChimpConnection connection) {
+        this.connection = connection;
+    }
 }

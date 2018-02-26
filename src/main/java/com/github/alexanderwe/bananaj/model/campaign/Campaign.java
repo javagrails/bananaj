@@ -6,12 +6,12 @@ package com.github.alexanderwe.bananaj.model.campaign;
 
 import java.net.URL;
 
+import com.github.alexanderwe.bananaj.model.list.MailChimpList;
 import org.json.JSONObject;
 
 import com.github.alexanderwe.bananaj.connection.MailChimpConnection;
 import com.github.alexanderwe.bananaj.exceptions.CampaignSettingsException;
 import com.github.alexanderwe.bananaj.model.MailchimpObject;
-import com.github.alexanderwe.bananaj.model.list.MailChimpList;
 import com.github.alexanderwe.bananaj.model.report.Click;
 import com.github.alexanderwe.bananaj.model.report.FacebookLikes;
 import com.github.alexanderwe.bananaj.model.report.Forward;
@@ -19,12 +19,12 @@ import com.github.alexanderwe.bananaj.model.report.IndustryStats;
 import com.github.alexanderwe.bananaj.model.report.Open;
 import com.github.alexanderwe.bananaj.model.report.Report;
 import com.github.alexanderwe.bananaj.model.report.ReportListStats;
-import com.github.alexanderwe.bananaj.utils.DateConverter;
+import com.github.alexanderwe.bananaj.helper.DateConverter;
 
 /**
  * Class for representing a mailchimp campaign
  * @author alexanderweiss
- *
+ * TODO: Refactor
  */
 public class Campaign extends MailchimpObject {
 

@@ -8,7 +8,7 @@ import java.util.List;
 public class Members {
 
     @JsonProperty
-    List<NewMember> members;
+    List<Member> members;
     @JsonProperty
     String list_id;
     @JsonProperty
@@ -16,11 +16,11 @@ public class Members {
     @JsonProperty
     List<Link> _links;
 
-    public List<NewMember> getMembers() {
+    public List<Member> getMembers() {
         return members;
     }
 
-    public void setLists(List<NewMember> members) {
+    public void setLists(List<Member> members) {
         this.members = members;
     }
 

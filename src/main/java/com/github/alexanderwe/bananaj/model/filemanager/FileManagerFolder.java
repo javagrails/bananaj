@@ -4,7 +4,7 @@ import com.github.alexanderwe.bananaj.connection.MailChimpConnection;
 import com.github.alexanderwe.bananaj.model.MailchimpObject;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import com.github.alexanderwe.bananaj.utils.DateConverter;
+import com.github.alexanderwe.bananaj.helper.DateConverter;
 
 import java.net.URL;
 import java.text.SimpleDateFormat;

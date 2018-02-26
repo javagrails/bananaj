@@ -1,28 +1,35 @@
-package com.github.alexanderwe.bananaj.model.list;
+package com.github.alexanderwe.bananaj.model.list.mergefield;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.github.alexanderwe.bananaj.model.Link;
 
 import java.util.List;
 
-
-@JsonIgnoreProperties()
-public class MailchimpLists {
+public class MergeFields {
 
     @JsonProperty
-    List<MailChimpList> lists;
+    List<MergeField> merge_fields;
+    @JsonProperty
+    String list_id;
     @JsonProperty
     int total_items;
     @JsonProperty
     Link[] _links;
 
-    public List<MailChimpList> getLists() {
-        return lists;
+    public List<MergeField> getMergeFields() {
+        return merge_fields;
     }
 
-    public void setLists(List<MailChimpList> lists) {
-        this.lists = lists;
+    public void setMergeFields(List<MergeField> merge_fields) {
+        this.merge_fields = merge_fields;
+    }
+
+    public String getList_id() {
+        return list_id;
+    }
+
+    public void setList_id(String list_id) {
+        this.list_id = list_id;
     }
 
     public int getTotal_items() {
@@ -40,5 +47,4 @@ public class MailchimpLists {
     public void set_links(Link[] _links) {
         this._links = _links;
     }
-
 }

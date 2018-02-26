@@ -1,5 +1,6 @@
 package com.github.alexanderwe.bananaj.model.list.segment;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.github.alexanderwe.bananaj.connection.MailChimpConnection;
 import com.github.alexanderwe.bananaj.exceptions.MailchimpAPIException;
@@ -7,8 +8,6 @@ import com.github.alexanderwe.bananaj.exceptions.SegmentException;
 import com.github.alexanderwe.bananaj.model.Link;
 import com.github.alexanderwe.bananaj.model.MailchimpObject;
 import com.github.alexanderwe.bananaj.model.list.member.Member;
-import com.github.alexanderwe.bananaj.model.list.member.MemberStatus;
-import com.github.alexanderwe.bananaj.model.list.member.NewMember;
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.JsonNode;
 import com.mashape.unirest.http.Unirest;
@@ -26,7 +25,8 @@ import java.util.List;
 /**
  * Created by alexanderweiss on 04.02.16.
  */
-public class Segment extends MailchimpObject {
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public class Segment {
 
     @JsonProperty
     private String id;
@@ -45,6 +45,8 @@ public class Segment extends MailchimpObject {
     @JsonProperty
     private String list_id;
     @JsonProperty
+    private String[] static_segment;
+    @JsonProperty
     private List<Link> _links;
 
     private MailChimpConnection connection;
@@ -55,7 +57,7 @@ public class Segment extends MailchimpObject {
      * @param member
      * @throws Exception
      */
-    public void addMember(NewMember member) throws Exception{
+    public void addMember(Member member) throws Exception{
         if (!this.getType().equals(SegmentType.STATIC)){
             throw new SegmentException();
         }
@@ -134,76 +136,94 @@ public class Segment extends MailchimpObject {
      * @throws Exception
      */
     public void update(Segment updatedSegment) throws Exception{
-        getConnection().do_Patch(new URL(connection.getListendpoint()+"/"+this.getList_id()+"/segments/"+this.getId()),updatedSegment.getJSONRepresentation().toString(),connection.getApikey());
+        getConnection().do_Patch(new URL(connection.getListendpoint()+"/"+this.getList_id()+"/segments/"+this.getId()),updatedSegment.toString(),connection.getApikey());
     }
 
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
 
     public String getName() {
         return name;
     }
 
-    public SegmentType getType() {
-        return type;
-    }
-
-    public String getList_id() {
-        return list_id;
-    }
-
-
-
-    public LocalDateTime getCreated_at() {
-        return created_at;
-    }
-
-    public void setCreated_at(String created_at){
-        OffsetDateTime offsetDateTime = OffsetDateTime.parse(created_at);
-        this.created_at = offsetDateTime.toLocalDateTime();
-    }
-
-    public LocalDateTime getUpdated_at() {
-        return updated_at;
-    }
-
-    public void setUpdated_at(String updated_at){
-        OffsetDateTime offsetDateTime = OffsetDateTime.parse(updated_at);
-        this.updated_at = offsetDateTime.toLocalDateTime();
+    public void setName(String name) {
+        this.name = name;
     }
 
     public int getMember_count() {
         return member_count;
     }
 
+    public void setMember_count(int member_count) {
+        this.member_count = member_count;
+    }
+
+    public SegmentType getType() {
+        return type;
+    }
+
+    public void setType(SegmentType type) {
+        this.type = type;
+    }
+
+    public LocalDateTime getCreated_at() {
+        return created_at;
+    }
+
+    public void setCreated_at(LocalDateTime created_at) {
+        this.created_at = created_at;
+    }
+
+    public LocalDateTime getUpdated_at() {
+        return updated_at;
+    }
+
+    public void setUpdated_at(LocalDateTime updated_at) {
+        this.updated_at = updated_at;
+    }
+
     public Options getOptions() {
         return options;
+    }
+
+    public void setOptions(Options options) {
+        this.options = options;
+    }
+
+    public String getList_id() {
+        return list_id;
+    }
+
+    public void setList_id(String list_id) {
+        this.list_id = list_id;
+    }
+
+    public List<Link> get_links() {
+        return _links;
+    }
+
+    public void set_links(List<Link> _links) {
+        this._links = _links;
     }
 
     public MailChimpConnection getConnection() {
         return connection;
     }
 
-    @Override
-    public String toString(){
-        return  "ID: " + this.getId() +  System.lineSeparator() +
-                "Name: " + this.getName() +  System.lineSeparator() +
-                "Type: " + this.getType() + System.lineSeparator() +
-                "List ID: " + this.getList_id() + System.lineSeparator() +
-                "Created at: " + this.getCreated_at() + System.lineSeparator() +
-                "Updated at: " + this.getUpdated_at() +  System.lineSeparator() +
-                "Member count: " +  this.getMember_count() + System.lineSeparator() +
-                "Options :" +this.getOptions() +  System.lineSeparator();
+    public void setConnection(MailChimpConnection connection) {
+        this.connection = connection;
     }
 
-    public static class Builder {
-        private String name;
-        private JSONObject jsonRepresentation = new JSONObject();
+    public String[] getStatic_segment() {
+        return static_segment;
+    }
 
-        public Builder name(String s) {
-            this.name = s;
-            jsonRepresentation.put("name", s);
-            return this;
-        }
-
-
+    public void setStatic_segment(String[] static_segment) {
+        this.static_segment = static_segment;
     }
 }

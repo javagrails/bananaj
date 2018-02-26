@@ -11,7 +11,7 @@ import org.json.JSONObject;
 import com.github.alexanderwe.bananaj.connection.MailChimpConnection;
 import com.github.alexanderwe.bananaj.exceptions.CampaignSettingsException;
 import com.github.alexanderwe.bananaj.exceptions.EmailException;
-import com.github.alexanderwe.bananaj.utils.EmailValidator;
+import com.github.alexanderwe.bananaj.helper.EmailValidator;
 
 /**
  * Class for representing settings for a campaign, including subject, from name, reply-to address, and more.

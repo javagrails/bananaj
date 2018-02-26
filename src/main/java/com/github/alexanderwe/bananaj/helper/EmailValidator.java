@@ -1,4 +1,4 @@
-package com.github.alexanderwe.bananaj.utils;
+package com.github.alexanderwe.bananaj.helper;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
