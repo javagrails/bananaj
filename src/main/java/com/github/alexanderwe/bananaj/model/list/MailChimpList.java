@@ -190,7 +190,7 @@ public class MailChimpList {
         member.put("status", status.getStringRepresentation());
         member.put("email_address", emailAddress);
         member.put("merge_fields", merge_fields);
-        getConnection().do_Post(new URL(connection.getListendpoint() + "/" + this.getId() + "/members"), member.toString(), connection.getApikey());
+       // getConnection().do_Post(new URL(connection.getListendpoint() + "/" + this.getId() + "/members"), member.toString(), connection.getApikey());
         int updateMemberCount = this.stats.getMember_count();
         this.stats.setMember_count(++updateMemberCount);
     }

@@ -5,31 +5,31 @@
 package com.github.alexanderwe.bananaj.model.report;
 
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 /**
  * Class for representing the average campaign statistics for your industry
  * @author alexanderweiss
  *
  */
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class IndustryStats {
 
+	@JsonProperty
 	private String type;
+	@JsonProperty
 	private double open_rate;
+	@JsonProperty
 	private double click_rate;
+	@JsonProperty
 	private double bounce_rate;
+	@JsonProperty
 	private double unopen_rate;
+	@JsonProperty
 	private double unsub_rate;
+	@JsonProperty
 	private double abuse_rate;
-	
-	
-	public IndustryStats(String type, double open_rate, double click_rate, double bounce_rate, double unopen_rate, double unsub_rate, double absue_rate) {
-		this.type = type;
-		this.open_rate = open_rate;
-		this.click_rate = click_rate;
-		this.bounce_rate = bounce_rate;
-		this.unopen_rate = unopen_rate;
-		this.unsub_rate = unsub_rate;
-		this.abuse_rate = absue_rate;
-	}
 
 
 	/**

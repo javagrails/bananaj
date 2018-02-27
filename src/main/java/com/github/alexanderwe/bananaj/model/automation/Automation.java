@@ -6,6 +6,7 @@ package com.github.alexanderwe.bananaj.model.automation;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.github.alexanderwe.bananaj.connection.MailChimpConnection;
 import com.github.alexanderwe.bananaj.model.Link;
 import com.github.alexanderwe.bananaj.model.MailchimpObject;
 
@@ -21,6 +22,7 @@ import java.util.List;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class Automation extends MailchimpObject {
 
+    private MailChimpConnection connection;
 
     @JsonProperty
     private String id;
@@ -134,5 +136,13 @@ public class Automation extends MailchimpObject {
 
     public void set_links(List<Link> _links) {
         this._links = _links;
+    }
+
+    public MailChimpConnection getConnection() {
+        return connection;
+    }
+
+    public void setConnection(MailChimpConnection connection) {
+        this.connection = connection;
     }
 }
