@@ -34,14 +34,14 @@ public class FileManager {
     public List<FileManagerFolder> getFileManagerFolders() throws Exception{
         List<FileManagerFolder> fileManagerFolders = new ArrayList<FileManagerFolder>();
 
-        JSONObject jsonFileManagerFolders = new JSONObject(getConnection().do_Get(new URL(getConnection().getFilemanagerfolderendpoint()),connection.getApikey()));
+       /* JSONObject jsonFileManagerFolders = new JSONObject(getConnection().do_Get(new URL(getConnection().getFilemanagerfolderendpoint()),connection.getApikey()));
         JSONArray folderArray = jsonFileManagerFolders.getJSONArray("folders");
         for( int i = 0; i< folderArray.length();i++)
         {
             JSONObject folderDetail = folderArray.getJSONObject(i);
             FileManagerFolder folder = new FileManagerFolder(folderDetail.getInt("id"),folderDetail.getString("name"),folderDetail.getInt("file_count"),DateConverter.getInstance().createDateFromISO8601(folderDetail.getString("created_at")), folderDetail.getString("created_by"),folderDetail,this.getConnection());
             fileManagerFolders.add(folder);
-        }
+        }*/
         return fileManagerFolders;
     }
 
@@ -51,8 +51,9 @@ public class FileManager {
      * @throws Exception
      */
     public FileManagerFolder getFileManagerFolder(int id) throws Exception{
-        JSONObject jsonFileManagerFolder = new JSONObject(getConnection().do_Get(new URL(getConnection().getFilemanagerfolderendpoint()+"/"+id),connection.getApikey()));
-        return new FileManagerFolder(jsonFileManagerFolder.getInt("id"),jsonFileManagerFolder.getString("name"),jsonFileManagerFolder.getInt("file_count"),DateConverter.getInstance().createDateFromISO8601(jsonFileManagerFolder.getString("created_at")), jsonFileManagerFolder.getString("created_by"),jsonFileManagerFolder,this.getConnection());
+        //JSONObject jsonFileManagerFolder = new JSONObject(getConnection().do_Get(new URL(getConnection().getFilemanagerfolderendpoint()+"/"+id),connection.getApikey()));
+        //return new FileManagerFolder(jsonFileManagerFolder.getInt("id"),jsonFileManagerFolder.getString("name"),jsonFileManagerFolder.getInt("file_count"),DateConverter.getInstance().createDateFromISO8601(jsonFileManagerFolder.getString("created_at")), jsonFileManagerFolder.getString("created_by"),jsonFileManagerFolder,this.getConnection());
+        return null;
     }
 
     /**
@@ -61,7 +62,7 @@ public class FileManager {
      * @throws Exception
      */
     public List<FileManagerFile> getFileManagerFiles() throws Exception{
-        List<FileManagerFile> files = new ArrayList<FileManagerFile>();
+        /*List<FileManagerFile> files = new ArrayList<FileManagerFile>();
 
 
         // parse response
@@ -80,7 +81,7 @@ public class FileManager {
 
             files.add(file);
         }
-        return files;
+        return files;*/ return null;
     }
 
     /**
@@ -90,13 +91,14 @@ public class FileManager {
      */
     public FileManagerFile getFileManagerFile(int id) throws Exception{
         // parse response
-        JSONObject jsonFileManagerFile = new JSONObject(getConnection().do_Get(new URL(this.getConnection().getFilesendpoint()+"/"+id),connection.getApikey()));
+        /*JSONObject jsonFileManagerFile = new JSONObject(getConnection().do_Get(new URL(this.getConnection().getFilesendpoint()+"/"+id),connection.getApikey()));
 
         if(jsonFileManagerFile.getString("type").equals("image")){
             return new FileManagerFile(jsonFileManagerFile.getInt("id"),jsonFileManagerFile.getInt("folder_id"),jsonFileManagerFile.getString("type"),jsonFileManagerFile.getString("name"),jsonFileManagerFile.getString("full_size_url"),jsonFileManagerFile.getInt("size"),DateConverter.getInstance().createDateFromISO8601(jsonFileManagerFile.getString("created_at")),jsonFileManagerFile.getString("created_by"), jsonFileManagerFile.getInt("width"), jsonFileManagerFile.getInt("height"), this.getConnection(),jsonFileManagerFile);
         }else{
             return new FileManagerFile(jsonFileManagerFile.getInt("id"),jsonFileManagerFile.getInt("folder_id"),jsonFileManagerFile.getString("type"),jsonFileManagerFile.getString("name"),jsonFileManagerFile.getString("full_size_url"),jsonFileManagerFile.getInt("size"),DateConverter.getInstance().createDateFromISO8601(jsonFileManagerFile.getString("created_at")),jsonFileManagerFile.getString("created_by"), this.getConnection(), jsonFileManagerFile);
-        }
+        }*/
+        return null;
     }
 
     /**
@@ -113,7 +115,7 @@ public class FileManager {
         upload_data.put("folder_id", folder_id);
         upload_data.put("name", filename+FileInspector.getInstance().getExtension(file));
         upload_data.put("file_data",FileInspector.getInstance().encodeFileToBase64Binary(file));
-        getConnection().do_Post(new URL(connection.getFilesendpoint()), upload_data.toString(),connection.getApikey());
+       // getConnection().do_Post(new URL(connection.getFilesendpoint()), upload_data.toString(),connection.getApikey());
     }
 
     /**
@@ -128,7 +130,7 @@ public class FileManager {
         JSONObject upload_data  = new JSONObject();
         upload_data.put("name", filename+ FileInspector.getInstance().getExtension(file));
         upload_data.put("file_data",FileInspector.getInstance().encodeFileToBase64Binary(file));
-        getConnection().do_Post(new URL(connection.getFilesendpoint()), upload_data.toString(),connection.getApikey());
+        //getConnection().do_Post(new URL(connection.getFilesendpoint()), upload_data.toString(),connection.getApikey());
     }
 
     /**
@@ -137,7 +139,7 @@ public class FileManager {
      * @throws Exception
      */
     public void deleteFile(String fileID) throws Exception{
-        connection.do_Delete(new URL(connection.getFilesendpoint()+"/"+fileID),connection.getApikey());
+       // connection.do_Delete(new URL(connection.getFilesendpoint()+"/"+fileID),connection.getApikey());
     }
 
     public MailChimpConnection getConnection() {

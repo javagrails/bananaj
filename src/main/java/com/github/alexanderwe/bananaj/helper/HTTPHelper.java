@@ -22,9 +22,17 @@ public class HTTPHelper {
 
 
     public static <T> HttpResponse<T> get(String url, String authorization, Class<? extends T> responseClass) throws  MailchimpAPIException, UnirestException{
+        System.out.println("GET REQUEST TO: " +  url);
+        HttpResponse<JsonNode> debug = Unirest.get(url)
+                .header("Authorization", authorization)
+                .asJson();
+        System.out.println(debug.getBody().toString());
+
+
         HttpResponse<T> getResponse = Unirest.get(url)
                 .header("Authorization", authorization)
                 .asObject(responseClass);
+
 
         if (getResponse.getStatus() / 100 != 2) {
             throw new MailchimpAPIException();

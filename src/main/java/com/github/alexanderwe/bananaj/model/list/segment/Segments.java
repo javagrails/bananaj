@@ -16,11 +16,11 @@ public class Segments {
     @JsonProperty
     List<Link> _links;
 
-    public List<Segment> getMembers() {
+    public List<Segment> getSegments() {
         return segments;
     }
 
-    public void setLists(List<Segment> members) {
+    public void setSegments(List<Segment> members) {
         this.segments = members;
     }
 

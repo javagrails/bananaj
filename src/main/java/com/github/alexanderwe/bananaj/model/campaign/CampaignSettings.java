@@ -139,7 +139,7 @@ public class CampaignSettings {
 		JSONObject updatedSettings = new JSONObject();
 		updatedSettings.put("subject", newSubject);
 		updatedCampaign.put("settings", updatedSettings);
-		this.getConnection().do_Patch(new URL(this.getConnection().getCampaignendpoint()+"/"+this.getCampaignId()),updatedCampaign.toString(),this.getConnection().getApikey());
+		//this.getConnection().do_Patch(new URL(this.getConnection().getCampaignendpoint()+"/"+this.getCampaignId()),updatedCampaign.toString(),this.getConnection().getApikey());
 		this.subject_line = newSubject;
 	}
 
@@ -153,7 +153,7 @@ public class CampaignSettings {
 		JSONObject updatedSettings = new JSONObject();
 		updatedSettings.put("title", newTitle);
 		updatedCampaign.put("settings", updatedSettings);
-		this.getConnection().do_Patch(new URL(this.getConnection().getCampaignendpoint()+"/"+this.getCampaignId()),updatedCampaign.toString(),this.getConnection().getApikey());
+		//this.getConnection().do_Patch(new URL(this.getConnection().getCampaignendpoint()+"/"+this.getCampaignId()),updatedCampaign.toString(),this.getConnection().getApikey());
 		this.title = newTitle;
 	}
 
@@ -167,7 +167,7 @@ public class CampaignSettings {
 		JSONObject updatedSettings = new JSONObject();
 		updatedSettings.put("from_name", newFrom);
 		updatedCampaign.put("settings", updatedSettings);
-		this.getConnection().do_Patch(new URL(this.getConnection().getCampaignendpoint()+"/"+this.getCampaignId()),updatedCampaign.toString(),this.getConnection().getApikey());
+		//this.getConnection().do_Patch(new URL(this.getConnection().getCampaignendpoint()+"/"+this.getCampaignId()),updatedCampaign.toString(),this.getConnection().getApikey());
 		this.from_name = newFrom;
 	}
 
@@ -182,7 +182,7 @@ public class CampaignSettings {
 			JSONObject updatedSettings = new JSONObject();
 			updatedSettings.put("reply_to", newReplyToMail);
 			updatedCampaign.put("settings", updatedSettings);
-			this.getConnection().do_Patch(new URL(this.getConnection().getCampaignendpoint()+"/"+this.getCampaignId()),updatedCampaign.toString(),this.getConnection().getApikey());
+			//this.getConnection().do_Patch(new URL(this.getConnection().getCampaignendpoint()+"/"+this.getCampaignId()),updatedCampaign.toString(),this.getConnection().getApikey());
 			this.reply_to = newReplyToMail;
 		} else {
 			throw new EmailException(newReplyToMail);

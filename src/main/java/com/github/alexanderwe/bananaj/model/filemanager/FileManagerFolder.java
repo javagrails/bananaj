@@ -47,7 +47,7 @@ public class FileManagerFolder extends MailchimpObject{
     public void changeName(String name) throws Exception{
         JSONObject changedFolder  = new JSONObject();
         changedFolder.put("name", name);
-        this.connection.do_Patch(new URL(this.getConnection().getFilemanagerfolderendpoint()+"/"+this.getId()), changedFolder.toString(), this.getConnection().getApikey());
+       // this.connection.do_Patch(new URL(this.getConnection().getFilemanagerfolderendpoint()+"/"+this.getId()), changedFolder.toString(), this.getConnection().getApikey());
 
     }
 
@@ -73,12 +73,12 @@ public class FileManagerFolder extends MailchimpObject{
     }
 
     public void setFiles() throws Exception{
-        ArrayList<FileManagerFile> files = new ArrayList<FileManagerFile>();
+        /*ArrayList<FileManagerFile> files = new ArrayList<FileManagerFile>();
 
         SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
         formatter.setTimeZone(TimeZone.getTimeZone("GMT"));
         // parse response
-        JSONObject jsonFileManagerFiles = new JSONObject(getConnection().do_Get(new URL(connection.getFilesendpoint()),connection.getApikey()));
+       // JSONObject jsonFileManagerFiles = new JSONObject(getConnection().do_Get(new URL(connection.getFilesendpoint()),connection.getApikey()));
         JSONArray filesArray = jsonFileManagerFiles.getJSONArray("files");
         for( int i = 0; i< filesArray.length();i++)
         {
@@ -96,7 +96,7 @@ public class FileManagerFolder extends MailchimpObject{
             }
         }
 
-        this.files = files;
+        this.files = files;*/
     }
 
     public FileManagerFile getFile(int id){

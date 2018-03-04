@@ -108,7 +108,7 @@ public class FileManagerFile extends MailchimpObject {
         changedFileName.put("name", name);
         changedFileName.put("file_data", (this.file_data !=null) ? this.file_data: "");
         changedFileName.put("folder_id", this.getFolder_id());
-        this.connection.do_Patch(new URL(this.getConnection().getFilesendpoint()+"/"+this.getId()), changedFileName.toString(), this.getConnection().getApikey());
+       // this.connection.do_Patch(new URL(this.getConnection().getFilesendpoint()+"/"+this.getId()), changedFileName.toString(), this.getConnection().getApikey());
         this.name = name;
     }
 

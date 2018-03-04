@@ -9,6 +9,7 @@ import com.github.alexanderwe.bananaj.exceptions.FileFormatException;
 import com.github.alexanderwe.bananaj.exceptions.MailchimpAPIException;
 import com.github.alexanderwe.bananaj.helper.EmailValidator;
 import com.github.alexanderwe.bananaj.helper.FileInspector;
+import com.github.alexanderwe.bananaj.helper.HTTPHelper;
 import com.github.alexanderwe.bananaj.model.Link;
 import com.github.alexanderwe.bananaj.model.campaign.NewCampaignDefaults;
 import com.github.alexanderwe.bananaj.model.list.member.Member;
@@ -95,7 +96,7 @@ public class MailChimpList {
      * @return
      * @throws Exception
      */
-    public Members getMembers(int count, int offset) throws UnirestException {
+    public Members getMembers(int count, int offset) throws  MailchimpAPIException, UnirestException {
 
         String url;
         if (count != 0) {
@@ -104,36 +105,26 @@ public class MailChimpList {
             url = this.connection.getListendpoint() + "/" + this.getId() + "/members?count=" + this.getStats().getMember_count() + "&offset=" + offset;
         }
 
-        HttpResponse<Members> membersHttpResponse = Unirest.get(url)
-                .header("Authorization", this.connection.getApikey())
-                .asObject(Members.class);
-
-
-        Members members = membersHttpResponse.getBody();
+        Members members = HTTPHelper.get(url, this.connection.getApikey(), Members.class).getBody();
 
 
         members.getMembers().forEach(member -> {
             member.setConnection(this.getConnection());
         });
 
-
-        return membersHttpResponse.getBody();
+        return members;
     }
 
     /**
      * Get a single member from list
      *
-     * @param memberID
+     * @param member_id
      * @return
      * @throws Exception
      */
-    public Member getMember(String memberID) throws UnirestException {
+    public Member getMember(String member_id) throws MailchimpAPIException, UnirestException{
 
-        HttpResponse<Member> newMemberHttpResponse = Unirest.get(this.connection.getListendpoint() + "/" + this.getId() + "/members/" + memberID)
-                .header("Authorization", this.connection.getApikey())
-                .asObject(Member.class);
-
-        Member member = newMemberHttpResponse.getBody();
+        Member member = HTTPHelper.get(this.connection.getListendpoint() + "/" + this.getId() + "/members/" + member_id, this.connection.getApikey(), Member.class).getBody();
         member.setConnection(this.getConnection());
         return member;
     }
@@ -150,17 +141,7 @@ public class MailChimpList {
         member.setEmail_address(emailAddress);
         member.setStatus(status);
 
-        HttpResponse<JsonNode> postReponse = Unirest.post(this.connection.getListendpoint() + "/" + this.getId() + "/members")
-                .header("Authorization", this.connection.getApikey())
-                .header("accept", "application/json")
-                .header("Content-Type", "application/json")
-                .body(member)
-                .asJson();
-
-
-        if (postReponse.getStatus() / 100 != 2) {
-            throw new MailchimpAPIException(postReponse.getBody().getObject());
-        }
+       HTTPHelper.post(this.connection.getListendpoint() + "/" + this.getId() + "/members/",member, this.connection.getApikey()).getBody();
 
         int updateMemberCount = this.stats.getMember_count();
         this.stats.setMember_count(++updateMemberCount);
@@ -235,21 +216,12 @@ public class MailChimpList {
     /**
      * Delete a member from list
      *
-     * @param memberID
+     * @param member_id
      * @throws Exception
      */
-    public void deleteMember(String memberID) throws MailchimpAPIException, UnirestException {
+    public void deleteMember(String member_id) throws MailchimpAPIException, UnirestException {
 
-        HttpResponse<JsonNode> deleteResponse = Unirest.delete(this.connection.getListendpoint() + "/" + this.getId() + "/members/" + memberID)
-                .header("Authorization", this.connection.getApikey())
-                .header("accept", "application/json")
-                .asJson();
-
-
-        if (deleteResponse.getStatus() / 100 != 2) {
-            throw new MailchimpAPIException(deleteResponse.getBody().getObject());
-        }
-
+        HTTPHelper.delete(this.connection.getListendpoint() + "/" + this.getId() + "/members/" + member_id, this.connection.getApikey());
         int updateMemberCount = this.stats.getMember_count();
         this.stats.setMember_count(--updateMemberCount);
     }
@@ -260,12 +232,8 @@ public class MailChimpList {
      * @return a growth history
      * @throws Exception
      */
-    public GrowthHistory getGrowthHistory() throws UnirestException {
-
-        HttpResponse<GrowthHistory> growthHistoryHttpResponse = Unirest.get(this.connection.getListendpoint() + "/" + this.getId() + "/growth-history")
-                .header("Authorization", this.connection.getApikey())
-                .asObject(GrowthHistory.class);
-        return growthHistoryHttpResponse.getBody();
+    public GrowthHistory getGrowthHistory() throws MailchimpAPIException, UnirestException {
+        return HTTPHelper.get(this.connection.getListendpoint() + "/" + this.getId() + "/growth-history", this.connection.getApikey(),  GrowthHistory.class).getBody();
     }
 
     /**
@@ -274,27 +242,19 @@ public class MailChimpList {
      * @return
      * @throws Exception
      */
-    public Segments getSegments() throws UnirestException {
-
-        HttpResponse<Segments> segmentsHttpResponse = Unirest.get(this.connection.getListendpoint() + "/" + this.getId() + "/segments")
-                .header("Authorization", this.connection.getApikey())
-                .asObject(Segments.class);
-        return segmentsHttpResponse.getBody();
+    public Segments getSegments() throws MailchimpAPIException,UnirestException {
+        return HTTPHelper.get(this.connection.getListendpoint() + "/" + this.getId() + "/segments", this.getConnection().getApikey(), Segments.class).getBody();
     }
 
     /**
      * Get a specific segment of this list
      *
-     * @param segmentID
+     * @param segment_id
      * @return
      * @throws Exception
      */
-    public Segment getSegment(String segmentID) throws UnirestException {
-
-        HttpResponse<Segment> segmentHttpResponse = Unirest.get(this.connection.getListendpoint() + "/" + this.getId() + "/growth-history")
-                .header("Authorization", this.connection.getApikey())
-                .asObject(Segment.class);
-        return segmentHttpResponse.getBody();
+    public Segment getSegment(String segment_id) throws  MailchimpAPIException, UnirestException {
+        return HTTPHelper.get(this.connection.getListendpoint() + "/" + this.getId() + "/segments/" + segment_id, this.getConnection().getApikey(), Segment.class).getBody();
     }
 
     /**
@@ -309,17 +269,7 @@ public class MailChimpList {
         Segment segment = new Segment();
         segment.setName(name);
 
-        HttpResponse<JsonNode> postResponse = Unirest.post(this.connection.getListendpoint() + "/" + this.getId() + "/segments")
-                .header("Authorization", this.connection.getApikey())
-                .header("accept", "application/json")
-                .header("Content-Type", "application/json")
-                .body(segment)
-                .asJson();
-
-
-        if (postResponse.getStatus() / 100 != 2) {
-            throw new MailchimpAPIException(postResponse.getBody().getObject());
-        }
+        HTTPHelper.post(this.connection.getListendpoint() + "/" + this.getId() + "/segments", segment, this.getConnection().getApikey());
     }
 
     /**
@@ -341,32 +291,12 @@ public class MailChimpList {
         }
         segment.setStatic_segment(emails);
 
-        HttpResponse<JsonNode> postResponse = Unirest.post(this.connection.getListendpoint() + "/" + this.getId() + "/segments")
-                .header("Authorization", this.connection.getApikey())
-                .header("accept", "application/json")
-                .header("Content-Type", "application/json")
-                .body(segment)
-                .asJson();
-
-
-        if (postResponse.getStatus() / 100 != 2) {
-            throw new MailchimpAPIException(postResponse.getBody().getObject());
-        }
-
+        HTTPHelper.post(this.connection.getListendpoint() + "/" + this.getId() + "/segments", segment, this.getConnection().getApikey());
     }
 
 
     public void deleteSegement(String segment_id) throws MailchimpAPIException, UnirestException {
-
-        HttpResponse<JsonNode> deleteResponse = Unirest.delete(this.connection.getListendpoint() + "/" + this.getId() + "/segments/" + segment_id)
-                .header("Authorization", this.connection.getApikey())
-                .header("accept", "application/json")
-                .asJson();
-
-
-        if (deleteResponse.getStatus() / 100 != 2) {
-            throw new MailchimpAPIException(deleteResponse.getBody().getObject());
-        }
+        HTTPHelper.delete(this.connection.getListendpoint() + "/" + this.getId() + "/segments/" + segment_id, this.getConnection().getApikey());
     }
 
 
@@ -376,28 +306,19 @@ public class MailChimpList {
      * @return
      * @throws Exception
      */
-    public MergeFields getMergeFields() throws Exception {
-
-        HttpResponse<MergeFields> mergeFieldsHTTPResponse = Unirest.get(this.connection.getListendpoint() + "/" + this.getId() + "/merge-fields")
-                .header("Authorization", this.connection.getApikey())
-                .asObject(MergeFields.class);
-
-        return mergeFieldsHTTPResponse.getBody();
+    public MergeFields getMergeFields() throws MailchimpAPIException, UnirestException {
+        return  HTTPHelper.get(this.connection.getListendpoint() + "/" + this.getId() + "/merge-fields", this.getConnection().getApikey(), MergeFields.class).getBody();
     }
 
     /**
      * Get a specific merge field of this list
      *
-     * @param mergeFieldID
+     * @param mergeField_id
      * @return
      */
-    public MergeField getMergeField(String mergeFieldID) throws UnirestException {
+    public MergeField getMergeField(String mergeField_id) throws MailchimpAPIException, UnirestException {
+        return  HTTPHelper.get(this.connection.getListendpoint() + "/" + this.getId() + "/merge-fields/"+ mergeField_id, this.getConnection().getApikey(), MergeField.class).getBody();
 
-        HttpResponse<MergeField> mergeFieldHTTPResponse = Unirest.get(this.connection.getListendpoint() + "/" + this.getId() + "/merge-fields/" + mergeFieldID)
-                .header("Authorization", this.connection.getApikey())
-                .asObject(MergeField.class);
-
-        return mergeFieldHTTPResponse.getBody();
     }
 
     //TODO: ADD
@@ -406,17 +327,8 @@ public class MailChimpList {
     }
 
 
-    public void deleteMergeField(String mergeFieldID) throws MailchimpAPIException, UnirestException {
-
-        HttpResponse<JsonNode> deleteResponse = Unirest.delete(this.connection.getListendpoint() + "/" + this.getId() + "/merge-fields/" + mergeFieldID)
-                .header("Authorization", this.connection.getApikey())
-                .header("accept", "application/json")
-                .asJson();
-
-
-        if (deleteResponse.getStatus() / 100 != 2) {
-            throw new MailchimpAPIException(deleteResponse.getBody().getObject());
-        }
+    public void deleteMergeField(String mergeField_id) throws MailchimpAPIException, UnirestException {
+        HTTPHelper.delete(this.connection.getListendpoint() + "/" + this.getId() + "/merge-fields/" + mergeField_id, this.getConnection().getApikey());
     }
 
     /**

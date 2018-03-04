@@ -7,8 +7,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 public enum MatchType {
 
-    @JsonProperty("any")
-    ANY("any"),
+    @JsonProperty("any") ANY("any"),
     @JsonProperty("all") ALL("all");
 
     private String stringRepresentation;

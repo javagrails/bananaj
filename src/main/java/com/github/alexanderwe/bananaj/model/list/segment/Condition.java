@@ -1,99 +1,57 @@
 package com.github.alexanderwe.bananaj.model.list.segment;
 
-import com.github.alexanderwe.bananaj.exceptions.ConditionException;
-import org.json.JSONObject;
+import com.fasterxml.jackson.annotation.JsonAnyGetter;
+import com.fasterxml.jackson.annotation.JsonAnySetter;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by alexanderweiss on 27.12.16.
  */
 public class Condition {
 
+    @JsonProperty
+    private ConditionType condition_type;
+    @JsonProperty
     private String field;
-    private Operator operator;
-    private String value;
-
-    /**
-     * Used when created a Condition locally with the Builder class
-     * @see Builder
-     * @param b
-     */
-
-    public Condition(Builder b) throws ConditionException{
-        if (b.operator == null) {
-            throw new ConditionException("A condition need an operator.");
-        } else {
-            this.operator = b.operator;
-        }
-
-        if (b.field == null) {
-            throw new ConditionException("A condition need a field to operate on.");
-        } else {
-            this.field = b.field;
-        }
-
-        if (b.value == null) {
-            throw new ConditionException("A condition need a value to compare on.");
-        } else {
-            this.value = b.value;
-        }
-    }
+    @JsonProperty
+    private Operator op;
+    protected Map<String,Object> value = new HashMap<String,Object>();
 
     public String getField() {
         return field;
     }
 
-    public Operator getOp() {
-        return operator;
+    public void setField(String field) {
+        this.field = field;
     }
 
-    public String getValue() {
+    public Operator getOp() {
+        return op;
+    }
+
+    public void setOp(Operator operator) {
+        this.op = operator;
+    }
+
+    public ConditionType getCondition_type() {
+        return condition_type;
+    }
+
+    public void setCondition_type(ConditionType condition_type) {
+        this.condition_type = condition_type;
+    }
+
+    @JsonAnyGetter
+    public Map<String,Object> getValue() {
         return value;
     }
 
-    public JSONObject getJsonRepresentation(){
-        JSONObject condition = new JSONObject();
-        condition.put("op", this.getOp().getStringRepresentation());
-        condition.put("field", this.getField());
-        condition.put("value", this.getValue());
-
-        return condition;
-    }
-
-    @Override
-    public String toString(){
-        return "Field: " + this.getField() + System.lineSeparator() +
-                "Operator: " + this.getOp().getStringRepresentation() +  System.lineSeparator() +
-                "Value: " + this.getValue();
-    }
-
-    public static class Builder {
-        private String field;
-        private Operator operator;
-        private String value;
-
-        public Builder field(String s) {
-            this.field = s;
-            return this;
-        }
-
-        public Builder operator(Operator op) {
-            this.operator = op;
-            return this;
-        }
-
-        public Builder value(String value) {
-            this.value = value;
-            return this;
-        }
-
-        public Condition build() {
-            try {
-                return new Condition(this);
-            } catch (ConditionException e) {
-                e.printStackTrace();
-            }
-            return null;
-        }
+    @JsonAnySetter
+    public void set(String name, Object value) {
+        this.value.put(name, value);
     }
 
 }

@@ -15,7 +15,7 @@ public class Options {
     @JsonProperty
     private MatchType match;
     @JsonProperty
-    private List<Object> conditions; //TODO: implement
+    private List<Condition> conditions;
 
     public void addCondition(Condition condition){
         this.conditions.add(condition);
@@ -29,11 +29,11 @@ public class Options {
         this.match = match;
     }
 
-    public List<Object> getConditions() {
+    public List<Condition> getConditions() {
         return conditions;
     }
 
-    public void setConditions(ArrayList<Object> conditions) {
+    public void setConditions(ArrayList<Condition> conditions) {
         this.conditions = conditions;
     }
 

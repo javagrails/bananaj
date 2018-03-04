@@ -8,6 +8,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.github.alexanderwe.bananaj.connection.MailChimpConnection;
 import com.github.alexanderwe.bananaj.exceptions.MailchimpAPIException;
+import com.github.alexanderwe.bananaj.helper.HTTPHelper;
 import com.github.alexanderwe.bananaj.model.Link;
 import com.github.alexanderwe.bananaj.model.MailchimpObject;
 import com.mashape.unirest.http.HttpResponse;
@@ -62,20 +63,10 @@ public class Template extends MailchimpObject  {
 	 * @throws Exception
 	 */
 	public void changeName(String name) throws Exception{
-
 		Template template = new Template();
 		template.setName(name);
 
-		HttpResponse<JsonNode> postReponse = Unirest.patch(this.connection.getTemplateendpoint()+"/"+this.getId())
-				.header("Authorization", this.connection.getApikey())
-				.header("accept", "application/json")
-				.header("Content-Type", "application/json")
-				.body(template)
-				.asJson();
-
-		if (postReponse.getStatus() / 100 != 2) {
-			throw new MailchimpAPIException(postReponse.getBody().getObject());
-		}
+		HTTPHelper.patch(this.connection.getTemplateendpoint()+"/"+this.getId(), template, this.connection.getApikey());
 		this.name = name;
 	}
 
@@ -88,17 +79,7 @@ public class Template extends MailchimpObject  {
 		Template template = new Template();
 		template.setHtml(html);
 
-		HttpResponse<JsonNode> postReponse = Unirest.patch(this.connection.getTemplateendpoint()+"/"+this.getId())
-				.header("Authorization", this.connection.getApikey())
-				.header("accept", "application/json")
-				.header("Content-Type", "application/json")
-				.body(template)
-				.asJson();
-
-		if (postReponse.getStatus() / 100 != 2) {
-			throw new MailchimpAPIException(postReponse.getBody().getObject());
-		}
-
+		HTTPHelper.patch(this.connection.getTemplateendpoint()+"/"+this.getId(), template, this.connection.getApikey());
 		this.html = html;
 	}
 
@@ -111,17 +92,7 @@ public class Template extends MailchimpObject  {
 		Template template = new Template();
 		template.setFolder_id(folder_id);
 
-		HttpResponse<JsonNode> postReponse = Unirest.patch(this.connection.getTemplateendpoint()+"/"+this.getId())
-				.header("Authorization", this.connection.getApikey())
-				.header("accept", "application/json")
-				.header("Content-Type", "application/json")
-				.body(template)
-				.asJson();
-
-		if (postReponse.getStatus() / 100 != 2) {
-			throw new MailchimpAPIException(postReponse.getBody().getObject());
-		}
-
+		HTTPHelper.patch(this.connection.getTemplateendpoint()+"/"+this.getId(), template, this.connection.getApikey());
 		this.folder_id = folder_id;
 	}
 

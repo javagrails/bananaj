@@ -1,10 +1,12 @@
 package com.github.alexanderwe.bananaj.model.list;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class Stats {
 
     @JsonProperty
@@ -27,6 +29,8 @@ public class Stats {
     private int merge_field_count;
     @JsonProperty
     private double avg_sub_rate;
+    @JsonProperty
+    private double sub_rate; // Used inside the report list_stats
     @JsonProperty
     private double avg_unsub_rate;
     @JsonProperty
@@ -185,4 +189,11 @@ public class Stats {
     }
 
 
+    public double getSub_rate() {
+        return sub_rate;
+    }
+
+    public void setSub_rate(double sub_rate) {
+        this.sub_rate = sub_rate;
+    }
 }
