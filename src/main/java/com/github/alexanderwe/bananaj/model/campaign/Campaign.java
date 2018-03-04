@@ -124,7 +124,7 @@ public class Campaign extends MailchimpObject {
 		final JSONObject report_list_stats = report.getJSONObject("list_stats");
 
 
-		Bounces bouncesObject = new Bounces(bounces.getInt("hard_bounces"),bounces.getInt("soft_bounces"),bounces.getInt("syntax_errors"));
+		/*Bounces bouncesObject = new Bounces(bounces.getInt("hard_bounces"),bounces.getInt("soft_bounces"),bounces.getInt("syntax_errors"));
 		Forwards forwardsObject = new Forwards(forwards.getInt("forwards_count"), forwards.getInt("forwards_opens"));
 		Clicks clicksObject = new Clicks(clicks.getInt("clicks_total"),clicks.getInt("unique_clicks"),clicks.getInt("unique_subscriber_clicks"),clicks.getDouble("click_rate"), DateConverter.getInstance().createDateFromISO8601(clicks.getString("last_click")));
 		Opens opensObject = new Opens(opens.getInt("opens_total"),opens.getInt("unique_opens"), opens.getDouble("open_rate"), opens.getString("last_open"));
@@ -133,7 +133,9 @@ public class Campaign extends MailchimpObject {
 		ReportListStats reportListStatsObject = new ReportListStats(report_list_stats.getDouble("sub_rate"), report_list_stats.getDouble("unsub_rate"), report_list_stats.getDouble("open_rate"), report_list_stats.getDouble("click_rate"));
 
 
-		return new Report(report.getString("id"), report.getString("campaign_title"),report.getInt("emails_sent"),report.getInt("abuse_reports"), report.getInt("unsubscribed"),DateConverter.getInstance().createDateFromISO8601(report.getString("send_time")),bouncesObject,forwardsObject,clicksObject,opensObject,facebookObject,null/*industryStatsObject*/,reportListStatsObject,report);
+		return new Report(report.getString("id"), report.getString("campaign_title"),report.getInt("emails_sent"),report.getInt("abuse_reports"), report.getInt("unsubscribed"),DateConverter.getInstance().createDateFromISO8601(report.getString("send_time")),bouncesObject,forwardsObject,clicksObject,opensObject,facebookObject,null/*industryStatsObject,reportListStatsObject,report);
+		*/
+		return null;
 	}
 
 	/**

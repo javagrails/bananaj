@@ -1,7 +1,13 @@
 package com.github.alexanderwe.bananaj.model.filemanager;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.github.alexanderwe.bananaj.connection.MailChimpConnection;
+import com.github.alexanderwe.bananaj.exceptions.MailchimpAPIException;
+import com.github.alexanderwe.bananaj.helper.HTTPHelper;
+import com.github.alexanderwe.bananaj.model.Link;
 import com.github.alexanderwe.bananaj.model.MailchimpObject;
+import com.mashape.unirest.http.exceptions.UnirestException;
 import org.json.JSONObject;
 import com.github.alexanderwe.bananaj.helper.FileInspector;
 
@@ -12,90 +18,45 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.util.List;
 
 /**
  * Class for representing one specific file manager file.
  * Created by alexanderweiss on 22.01.16.
  * TODO change methods are not working
  */
-public class FileManagerFile extends MailchimpObject {
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public class FileManagerFile {
 
+    @JsonProperty
+    private String id;
+    @JsonProperty
     private int folder_id;
+    @JsonProperty
     private String type;
+    @JsonProperty
     private String name;
+    @JsonProperty
     private String full_size_url;
+    @JsonProperty
+    private String thumbnail_url;
+    @JsonProperty
     private int size;
-    private LocalDateTime createdAt;
-    private String createdBy;
+    @JsonProperty
+    private LocalDateTime created_at;
+    @JsonProperty
+    private String created_by;
+    @JsonProperty
     private int width;
+    @JsonProperty
     private int height;
+    @JsonProperty
+    private List<Link> _links;
+    @JsonProperty
     private String file_data;
+
     private MailChimpConnection connection;
-    private boolean isImage;
-
-    private static final int BUFFER_SIZE = 4096;
-
-
-    /**
-     * File is an image
-     * @param id
-     * @param folder_id
-     * @param type
-     * @param name
-     * @param full_size_url
-     * @param size
-     * @param createdAt
-     * @param createdBy
-     * @param width
-     * @param height
-     * @param jsonData
-     */
-    public FileManagerFile(int id, int folder_id, String type, String name, String full_size_url, int size, LocalDateTime createdAt, String createdBy, int width, int height, MailChimpConnection connection,  JSONObject jsonData) {
-        super(String.valueOf(id),jsonData);
-        this.folder_id = folder_id;
-        this.type = type;
-        this.name = name;
-        this.full_size_url = full_size_url;
-        this.size = size;
-        this.createdAt = createdAt;
-        this.createdBy = createdBy;
-        this.width = width;
-        this.height = height;
-        this.connection = connection;
-        this.isImage = true;
-    }
-
-    /**
-     * File is not an image
-     * @param id
-     * @param folder_id
-     * @param type
-     * @param name
-     * @param full_size_url
-     * @param size
-     * @param createdAt
-     * @param createdBy
-     * @param jsonData
-     */
-    public FileManagerFile(int id, int folder_id, String type, String name, String full_size_url, int size, LocalDateTime createdAt, String createdBy, MailChimpConnection connection, JSONObject jsonData) {
-        super(String.valueOf(id),jsonData);
-        this.folder_id = folder_id;
-        this.type = type;
-        this.name = name;
-        this.full_size_url = full_size_url;
-        this.size = size;
-        this.createdAt = createdAt;
-        this.createdBy = createdBy;
-        this.connection = connection;
-        this.isImage = false;
-    }
-
-
-    public FileManagerFile (Builder b){
-        this.name = b.name;
-        this.file_data = b.file_data;
-        this.folder_id = b.folderId;
-    }
 
 
     /**
@@ -103,193 +64,144 @@ public class FileManagerFile extends MailchimpObject {
      * @param name
      * @
      */
-    private void changeName(String name) throws Exception{
-        JSONObject changedFileName = new JSONObject();
-        changedFileName.put("name", name);
-        changedFileName.put("file_data", (this.file_data !=null) ? this.file_data: "");
-        changedFileName.put("folder_id", this.getFolder_id());
-       // this.connection.do_Patch(new URL(this.getConnection().getFilesendpoint()+"/"+this.getId()), changedFileName.toString(), this.getConnection().getApikey());
+    private void changeName(String name) throws MailchimpAPIException, UnirestException{
+        FileManagerFile fileManagerFile = new FileManagerFile();
+        fileManagerFile.setName(name);
+        fileManagerFile.setFolder_id(this.folder_id);
+
+        HTTPHelper.patch(this.connection.getFilesendpoint()+"/"+this.getId(), fileManagerFile, this.connection.getApikey());
         this.name = name;
     }
 
     /**
      * Change the folder of this file
-     * @param folderID
+     * @param folder_id
      */
-    private void changeFolder(String folderID){
+    private void changeFolder(String folder_id) throws MailchimpAPIException, UnirestException{
+        FileManagerFile fileManagerFile = new FileManagerFile();
+        fileManagerFile.setName(this.getName());
+        fileManagerFile.setFolder_id(this.folder_id);
 
-    }
-
-    /**
-     * Change the file_data of this file
-     * @param file_data
-     */
-    private void changeFileData(String file_data){
-
-    }
-
-    /**
-     * Overwrite this file with a new file
-     * @param newFile
-     */
-    private void overwrite(FileManagerFile newFile){
-
+        HTTPHelper.patch(this.connection.getFilesendpoint()+"/"+this.getId(), fileManagerFile, this.connection.getApikey());
+        this.name = name;
     }
 
     //http://www.codejava.net/java-se/networking/use-httpurlconnection-to-download-file-from-an-http-url
-    public void downloadFile(String saveDir)
-            throws IOException {
-        URL url = new URL(this.getFull_size_url());
-        HttpURLConnection httpConn = (HttpURLConnection) url.openConnection();
-        int responseCode = httpConn.getResponseCode();
+    public void downloadFile(String saveDir) throws IOException {
+        HTTPHelper.downloadFile(this.getFull_size_url(), saveDir);
+    }
 
-        // always check HTTP response code first
-        if (responseCode == HttpURLConnection.HTTP_OK) {
-            String fileName = "";
-            String disposition = httpConn.getHeaderField("Content-Disposition");
-            String contentType = httpConn.getContentType();
-            int contentLength = httpConn.getContentLength();
+    public String getId() {
+        return id;
+    }
 
-            if (disposition != null) {
-                // extracts file name from header field
-                int index = disposition.indexOf("filename=");
-                if (index > 0) {
-                    fileName = disposition.substring(index + 10,
-                            disposition.length() - 1);
-                }
-            } else {
-                // extracts file name from URL
-                fileName = this.getFull_size_url().substring(this.getFull_size_url().lastIndexOf("/") + 1,
-                        this.getFull_size_url().length());
-            }
-
-            System.out.println("Content-Type = " + contentType);
-            System.out.println("Content-Disposition = " + disposition);
-            System.out.println("Content-Length = " + contentLength);
-            System.out.println("fileName = " + fileName);
-
-            // opens input stream from the HTTP com.github.alexanderwe.bananaj.connection
-            InputStream inputStream = httpConn.getInputStream();
-            String saveFilePath = saveDir + File.separator + fileName;
-
-            // opens an output stream to save into file
-            FileOutputStream outputStream = new FileOutputStream(saveFilePath);
-
-            int bytesRead;
-            byte[] buffer = new byte[BUFFER_SIZE];
-            while ((bytesRead = inputStream.read(buffer)) != -1) {
-                outputStream.write(buffer, 0, bytesRead);
-            }
-
-            outputStream.close();
-            inputStream.close();
-
-            System.out.println("File downloaded");
-        } else {
-            System.out.println("No file to download. Server replied HTTP code: " + responseCode);
-        }
-        httpConn.disconnect();
+    public void setId(String id) {
+        this.id = id;
     }
 
     public int getFolder_id() {
         return folder_id;
     }
 
+    public void setFolder_id(int folder_id) {
+        this.folder_id = folder_id;
+    }
 
     public String getType() {
         return type;
     }
 
+    public void setType(String type) {
+        this.type = type;
+    }
 
     public String getName() {
         return name;
     }
 
+    public void setName(String name) {
+        this.name = name;
+    }
 
     public String getFull_size_url() {
         return full_size_url;
     }
 
+    public void setFull_size_url(String full_size_url) {
+        this.full_size_url = full_size_url;
+    }
+
+    public String getThumbnail_url() {
+        return thumbnail_url;
+    }
+
+    public void setThumbnail_url(String thumbnail_url) {
+        this.thumbnail_url = thumbnail_url;
+    }
 
     public int getSize() {
         return size;
     }
 
-
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
+    public void setSize(int size) {
+        this.size = size;
     }
 
-
-    public String getCreatedBy() {
-        return createdBy;
+    public LocalDateTime getCreated_at() {
+        return created_at;
     }
 
+    public void setCreated_at(String created_at) {
+        OffsetDateTime offsetDateTime = OffsetDateTime.parse(created_at);
+        this.created_at = offsetDateTime.toLocalDateTime();
+    }
+
+    public String getCreated_by() {
+        return created_by;
+    }
+
+    public void setCreated_by(String created_by) {
+        this.created_by = created_by;
+    }
 
     public int getWidth() {
         return width;
     }
 
+    public void setWidth(int width) {
+        this.width = width;
+    }
 
     public int getHeight() {
         return height;
     }
 
+    public void setHeight(int height) {
+        this.height = height;
+    }
+
+    public List<Link> get_links() {
+        return _links;
+    }
+
+    public void set_links(List<Link> _links) {
+        this._links = _links;
+    }
 
     public String getFile_data() {
         return file_data;
+    }
+
+    public void setFile_data(String file_data) {
+        this.file_data = file_data;
     }
 
     public MailChimpConnection getConnection() {
         return connection;
     }
 
-
-    public boolean isImage(){
-        return this.isImage;
-    }
-
-    
-    @Override
-    public String toString(){
-        return "ID: " + this.getId() +" Name: " + this.getName() + " Type: " + this.getType() + " Width: " + this.getWidth()+"px "  + " Height: "+ this.getHeight()+"px" +" "+this.getType() + " Folder-Id: " + this.getFolder_id();
-    }
-
-
-    public static class Builder {
-        private String name;
-        private String file_data;
-        private int folderId;
-        private JSONObject jsonRepresentation = new JSONObject();
-
-        public FileManagerFile.Builder name(String name) {
-            this.name = name;
-            return this;
-        }
-
-        public FileManagerFile.Builder folder(int folderId) {
-            this.folderId = folderId;
-            return this;
-        }
-
-        public FileManagerFile.Builder fileData(String file_data) {
-            this.file_data = file_data;
-            return this;
-        }
-
-        /**
-         * Extract the data of the file
-         * @param file
-         * @return
-         */
-        public FileManagerFile.Builder fileData(File file) {
-            this.file_data = FileInspector.getInstance().encodeFileToBase64Binary(file);
-            return this;
-        }
-
-        public FileManagerFile build() {
-            return new FileManagerFile(this);
-        }
+    public void setConnection(MailChimpConnection connection) {
+        this.connection = connection;
     }
 
 }

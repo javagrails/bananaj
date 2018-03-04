@@ -12,7 +12,6 @@ public enum AutomationStatus {
     @JsonProperty("paused") PAUSED("paused"),
     @JsonProperty("sending") SENDING("sending");
 
-	
 	private String stringRepresentation;
 	
 	AutomationStatus(String stringRepresentation){
