@@ -5,7 +5,9 @@
 package com.github.alexanderwe.bananaj.model.campaign;
 
 import java.net.URL;
+import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.json.JSONObject;
 
 import com.github.alexanderwe.bananaj.connection.MailChimpConnection;
@@ -19,59 +21,50 @@ import com.github.alexanderwe.bananaj.helper.EmailValidator;
  *
  */
 public class CampaignSettings {
-	
-	// Campaign Settings 
-	private String subject_line;
-	//private String preview_text; // The preview text for the campaign.
-	private String title;
-	private String to_name;
-	private String from_name;
-	private String reply_to;
-	private int template_id;
-	private Boolean auto_footer;
-	private Boolean use_conversation;
-	private Boolean authenticate;
-	private Boolean timewarp;
-	private Boolean auto_tweet;
-	private Boolean fb_comments;
-	private Boolean drag_and_drop;
-	private Boolean inline_css;
-	//private Boolean auto_tweet;  // Automatically tweet a link to the campaign archive page when the campaign is sent.
-	//List<> auto_fb_post;  // An array of Facebook page ids to auto-post to.
-	private String folder_id;
-	// Convince references
-	private String campaignId;
+
+
 	private MailChimpConnection connection;
-	
-	public CampaignSettings(String subject_line, String title, String from_name, String reply_to, String campaignId, MailChimpConnection connection) {
-		this.subject_line = subject_line;
-		this.title = title;
-		this.from_name = from_name;
-		this.reply_to = reply_to;
-		this.campaignId = campaignId;
-		this.connection = connection;
+
+	@JsonProperty
+	private String subject_line;
+	@JsonProperty
+	private String preview_text;
+	@JsonProperty
+	private String title;
+	@JsonProperty
+	private String from_name;
+	@JsonProperty
+	private String reply_to;
+	@JsonProperty
+	private boolean use_conversation;
+	@JsonProperty
+	private String to_name;
+	@JsonProperty
+	private String folder_id;
+	@JsonProperty
+	private boolean authenticate;
+	@JsonProperty
+	private Boolean auto_footer;
+	@JsonProperty
+	private Boolean inline_css;
+	@JsonProperty
+	private Boolean auto_tweet;
+	@JsonProperty
+	private List<String> auto_fb_post;
+	@JsonProperty
+	private Boolean fb_comments;
+	@JsonProperty
+	private int template_id;
+	@JsonProperty
+	private boolean timewarp;
+	@JsonProperty
+	private boolean drag_and_drop;
+
+
+	private CampaignSettings() {
+
 	}
 
-	public CampaignSettings(MailChimpConnection connection, String campaignId, JSONObject settings) {
-		subject_line = getString(settings, "subject_line");
-		title = getString(settings, "title");
-		to_name = getString(settings, "to_name");
-		from_name = getString(settings, "from_name");
-		reply_to = getString(settings, "reply_to");
-		template_id = settings.getInt("template_id");
-		auto_footer = getBoolean(settings, "auto_footer");
-		use_conversation = getBoolean(settings, "use_conversation");
-		authenticate = getBoolean(settings, "authenticate");
-		timewarp = getBoolean(settings, "timewarp");
-		auto_tweet = getBoolean(settings, "auto_tweet");
-		fb_comments = getBoolean(settings, "fb_comments");
-		drag_and_drop = getBoolean(settings, "drag_and_drop");
-		inline_css = getBoolean(settings, "inline_css");
-		folder_id = getString(settings, "folder_id");
-		this.campaignId = campaignId;
-		this.connection = connection;
-	}
-	
 	private CampaignSettings(Builder b) throws CampaignSettingsException{
 
 		if(b.subject_line == null){
@@ -80,13 +73,14 @@ public class CampaignSettings {
 			this.subject_line = b.subject_line;
 		}
 
+		this.preview_text = b.preview_text;
+
 		if(b.title == null){
 			throw new CampaignSettingsException("You need to provide a 'title' for a campaign setting");
 		} else {
 			this.title = b.title;
 		}
 
-		this.to_name = b.to_name;
 		
 		if(b.from_name == null){
 			throw new CampaignSettingsException("You need to provide a 'From name' for a campaign setting");
@@ -100,18 +94,18 @@ public class CampaignSettings {
 			this.reply_to = b.reply_to;
 		}
 
-		this.reply_to = b.reply_to;
-		this.template_id = b.template_id;
-		this.auto_footer = b.auto_footer;
 		this.use_conversation = b.use_conversation;
-		this.authenticate = b.authenticate;
-		this.timewarp = b.timewarp;
-		this.auto_tweet = b.auto_tweet;
-		this.fb_comments = b.fb_comments;
-		this.drag_and_drop = b.drag_and_drop;
-		this.inline_css = b.inline_css;
+		this.to_name = b.to_name;
 		this.folder_id = b.folder_id;
-		this.campaignId = b.campaignId;
+		this.authenticate = b.authenticate;
+		this.auto_footer = b.auto_footer;
+		this.inline_css = b.inline_css;
+		this.auto_tweet = b.auto_tweet;
+		this.auto_fb_post = b.auto_fb_post;
+		this.fb_comments = b.fb_comments;
+		this.template_id = b.template_id;
+		this.timewarp = b.timewarp;
+		this.drag_and_drop = b.drag_and_drop;
 		this.connection = b.connection;
 	}
 
@@ -128,199 +122,6 @@ public class CampaignSettings {
 		}
 		return null;
 	}
-	
-	/**
-	 * Change the subject line of this campaign
-	 * @param newSubject
-	 * @throws Exception
-	 */
-	public void changeSubjectLine(String newSubject) throws Exception{
-		JSONObject updatedCampaign = new JSONObject();
-		JSONObject updatedSettings = new JSONObject();
-		updatedSettings.put("subject", newSubject);
-		updatedCampaign.put("settings", updatedSettings);
-		//this.getConnection().do_Patch(new URL(this.getConnection().getCampaignendpoint()+"/"+this.getCampaignId()),updatedCampaign.toString(),this.getConnection().getApikey());
-		this.subject_line = newSubject;
-	}
-
-	/**
-	 * Change the title of this campaign
-	 * @param newTitle
-	 * @throws Exception
-	 */
-	public void changeTitle(String newTitle) throws Exception{
-		JSONObject updatedCampaign = new JSONObject();
-		JSONObject updatedSettings = new JSONObject();
-		updatedSettings.put("title", newTitle);
-		updatedCampaign.put("settings", updatedSettings);
-		//this.getConnection().do_Patch(new URL(this.getConnection().getCampaignendpoint()+"/"+this.getCampaignId()),updatedCampaign.toString(),this.getConnection().getApikey());
-		this.title = newTitle;
-	}
-
-	/**
-	 * Change the from name of this campaign
-	 * @param newFrom
-	 * @throws Exception
-	 */
-	public void changeFrom(String newFrom) throws Exception{
-		JSONObject updatedCampaign = new JSONObject();
-		JSONObject updatedSettings = new JSONObject();
-		updatedSettings.put("from_name", newFrom);
-		updatedCampaign.put("settings", updatedSettings);
-		//this.getConnection().do_Patch(new URL(this.getConnection().getCampaignendpoint()+"/"+this.getCampaignId()),updatedCampaign.toString(),this.getConnection().getApikey());
-		this.from_name = newFrom;
-	}
-
-	/**
-	 * Change the reply to email address of this campaign
-	 * @param newReplyToMail
-	 * @throws Exception
-	 */
-	public void changeReplyTo(String newReplyToMail) throws Exception{
-		if(EmailValidator.getInstance().validate(newReplyToMail)){
-			JSONObject updatedCampaign = new JSONObject();
-			JSONObject updatedSettings = new JSONObject();
-			updatedSettings.put("reply_to", newReplyToMail);
-			updatedCampaign.put("settings", updatedSettings);
-			//this.getConnection().do_Patch(new URL(this.getConnection().getCampaignendpoint()+"/"+this.getCampaignId()),updatedCampaign.toString(),this.getConnection().getApikey());
-			this.reply_to = newReplyToMail;
-		} else {
-			throw new EmailException(newReplyToMail);
-		}
-	}
-
-	/**
-	 * The subject line for the campaign.
-	 * @return the subject_line
-	 */
-	public String getSubject_line() {
-		return subject_line;
-	}
-
-	/**
-	 * The title of the campaign.
-	 * @return the title
-	 */
-	public String getTitle() {
-		return title;
-	}
-
-	/**
-	 * The campaign’s custom ‘To’ name. Typically the first name merge field.
-	 * @return the to_name
-	 */
-	public String getTo_name() {
-		return to_name;
-	}
-
-	/**
-	 * The ‘from’ name on the campaign (not an email address).
-	 * @return the from_name
-	 */
-	public String getFrom_name() {
-		return from_name;
-	}
-
-	/**
-	 * The reply-to email address for the campaign. Note: while this field is not required for campaign creation, it is required for sending.
-	 * @return the reply_to
-	 */
-	public String getReply_to() {
-		return reply_to;
-	}
-
-	/**
-	 * The id of the template to use.
-	 * @return the template_id
-	 */
-	public int getTemplate_id() {
-		return template_id;
-	}
-
-	/**
-	 * Automatically append MailChimp’s default footer to the campaign.
-	 * @return the auto_footer
-	 */
-	public Boolean getAuto_footer() {
-		return auto_footer;
-	}
-
-	/**
-	 * Use MailChimp Conversation feature to manage out-of-office replies.
-	 * @return the use_conversation
-	 */
-	public Boolean getUse_conversation() {
-		return use_conversation;
-	}
-
-	/**
-	 * Whether MailChimp authenticated the campaign. Defaults to true.
-	 * @return the authenticate
-	 */
-	public Boolean getAuthenticate() {
-		return authenticate;
-	}
-
-	/**
-	 * @return the timewarp
-	 */
-	public Boolean getTimewarp() {
-		return timewarp;
-	}
-
-	/**
-	 * @return the auto_tweet
-	 */
-	public Boolean getAuto_tweet() {
-		return auto_tweet;
-	}
-
-	/**
-	 * Allows Facebook comments on the campaign (also force-enables the Campaign Archive toolbar). Defaults to true.
-	 * @return the fb_comments
-	 */
-	public Boolean getFb_comments() {
-		return fb_comments;
-	}
-
-	/**
-	 * @return the drag_and_drop
-	 */
-	public Boolean getDrag_and_drop() {
-		return drag_and_drop;
-	}
-
-	/**
-	 * Automatically inline the CSS included with the campaign content.
-	 * @return the inline_css
-	 */
-	public Boolean getInline_css() {
-		return inline_css;
-	}
-
-	/**
-	 * If the campaign is listed in a folder, the id for that folder.
-	 * @return the folder_id
-	 */
-	public String getFolder_id() {
-		return folder_id;
-	}
-
-	public MailChimpConnection getConnection() {
-		return this.connection;
-	}
-
-	public void setConnection(MailChimpConnection connection) {
-		this.connection = connection;
-	}
-
-	public String getCampaignId() {
-		return campaignId;
-	}
-
-	public void setCampaignId(String campaignId) {
-		this.campaignId = campaignId;
-	}
 
 	/**
 	 * CampaignSettings builder pattern. 
@@ -328,7 +129,7 @@ public class CampaignSettings {
 	 */
 	public static class Builder {
 		private String subject_line;
-		//private String preview_text; // The preview text for the campaign.
+		private String preview_text;
 		private String title;
 		private String to_name;
 		private String from_name;
@@ -337,15 +138,13 @@ public class CampaignSettings {
 		private Boolean auto_footer;
 		private Boolean use_conversation;
 		private Boolean authenticate;
-		private Boolean timewarp;
-		private Boolean auto_tweet;
 		private Boolean fb_comments;
-		private Boolean drag_and_drop;
 		private Boolean inline_css;
-		//private Boolean auto_tweet;  // Automatically tweet a link to the campaign archive page when the campaign is sent.
-		//List<> auto_fb_post;  // An array of Facebook page ids to auto-post to.
+		private Boolean auto_tweet;
+		private List<String> auto_fb_post;
 		private String folder_id;
-		private String campaignId;
+		private Boolean timewarp;
+		private Boolean drag_and_drop;
 		private MailChimpConnection connection;
 
 		public Builder (MailChimpConnection connection) {
@@ -362,13 +161,12 @@ public class CampaignSettings {
 			this.auto_footer = settings.auto_footer;
 			this.use_conversation = settings.use_conversation;
 			this.authenticate = settings.authenticate;
-			this.timewarp = settings.timewarp;
 			this.auto_tweet = settings.auto_tweet;
 			this.fb_comments = settings.fb_comments;
-			this.drag_and_drop = settings.drag_and_drop;
 			this.inline_css = settings.inline_css;
 			this.folder_id = settings.folder_id;
-			this.campaignId = settings.campaignId;
+			this.timewarp = settings.timewarp;
+			this.drag_and_drop = settings.drag_and_drop;
 			this.connection = settings.connection;
 		}
 
@@ -420,11 +218,7 @@ public class CampaignSettings {
 			this.authenticate = authenticate;
 			return this;
 		}
-		
-		public Builder timewarp(Boolean timewarp) {
-			this.timewarp = timewarp;
-			return this;
-		}
+
 		
 		public Builder auto_tweet(Boolean auto_tweet) {
 			this.auto_tweet = auto_tweet;
@@ -435,11 +229,7 @@ public class CampaignSettings {
 			this.fb_comments = fb_comments;
 			return this;
 		}
-		
-		public Builder drag_and_drop(Boolean drag_and_drop) {
-			this.drag_and_drop = drag_and_drop;
-			return this;
-		}
+
 		
 		public Builder inline_css(Boolean inline_css) {
 			this.inline_css = inline_css;
@@ -450,9 +240,25 @@ public class CampaignSettings {
 			this.folder_id = folder_id;
 			return this;
 		}
-		
-		public Builder connection(String campaignId) {
-			this.campaignId = campaignId;
+
+		public Builder preview_text(String preview_text) {
+			this.preview_text = preview_text;
+			return this;
+		}
+
+
+		public Builder auto_fb_post(List<String> auto_fb_post) {
+			this.auto_fb_post = auto_fb_post;
+			return this;
+		}
+
+		public Builder drag_and_drop(Boolean drag_and_drop) {
+			this.drag_and_drop = drag_and_drop;
+			return this;
+		}
+
+		public Builder timewarp(Boolean timewarp) {
+			this.timewarp = timewarp;
 			return this;
 		}
 
@@ -470,5 +276,149 @@ public class CampaignSettings {
 			}
 			return null;
 		}
+	}
+
+	public MailChimpConnection getConnection() {
+		return connection;
+	}
+
+	public void setConnection(MailChimpConnection connection) {
+		this.connection = connection;
+	}
+
+	public String getSubject_line() {
+		return subject_line;
+	}
+
+	public void setSubject_line(String subject_line) {
+		this.subject_line = subject_line;
+	}
+
+	public String getPreview_text() {
+		return preview_text;
+	}
+
+	public void setPreview_text(String preview_text) {
+		this.preview_text = preview_text;
+	}
+
+	public String getTitle() {
+		return title;
+	}
+
+	public void setTitle(String title) {
+		this.title = title;
+	}
+
+	public String getFrom_name() {
+		return from_name;
+	}
+
+	public void setFrom_name(String from_name) {
+		this.from_name = from_name;
+	}
+
+	public String getReply_to() {
+		return reply_to;
+	}
+
+	public void setReply_to(String reply_to) {
+		this.reply_to = reply_to;
+	}
+
+	public boolean isUse_conversation() {
+		return use_conversation;
+	}
+
+	public void setUse_conversation(boolean use_conversation) {
+		this.use_conversation = use_conversation;
+	}
+
+	public String getTo_name() {
+		return to_name;
+	}
+
+	public void setTo_name(String to_name) {
+		this.to_name = to_name;
+	}
+
+	public String getFolder_id() {
+		return folder_id;
+	}
+
+	public void setFolder_id(String folder_id) {
+		this.folder_id = folder_id;
+	}
+
+	public boolean isAuthenticate() {
+		return authenticate;
+	}
+
+	public void setAuthenticate(boolean authenticate) {
+		this.authenticate = authenticate;
+	}
+
+	public Boolean getAuto_footer() {
+		return auto_footer;
+	}
+
+	public void setAuto_footer(Boolean auto_footer) {
+		this.auto_footer = auto_footer;
+	}
+
+	public Boolean getInline_css() {
+		return inline_css;
+	}
+
+	public void setInline_css(Boolean inline_css) {
+		this.inline_css = inline_css;
+	}
+
+	public Boolean getAuto_tweet() {
+		return auto_tweet;
+	}
+
+	public void setAuto_tweet(Boolean auto_tweet) {
+		this.auto_tweet = auto_tweet;
+	}
+
+	public List<String> getAuto_fb_post() {
+		return auto_fb_post;
+	}
+
+	public void setAuto_fb_post(List<String> auto_fb_post) {
+		this.auto_fb_post = auto_fb_post;
+	}
+
+	public Boolean getFb_comments() {
+		return fb_comments;
+	}
+
+	public void setFb_comments(Boolean fb_comments) {
+		this.fb_comments = fb_comments;
+	}
+
+	public int getTemplate_id() {
+		return template_id;
+	}
+
+	public void setTemplate_id(int template_id) {
+		this.template_id = template_id;
+	}
+
+	public boolean isTimewarp() {
+		return timewarp;
+	}
+
+	public void setTimewarp(boolean timewarp) {
+		this.timewarp = timewarp;
+	}
+
+	public boolean isDrag_and_drop() {
+		return drag_and_drop;
+	}
+
+	public void setDrag_and_drop(boolean drag_and_drop) {
+		this.drag_and_drop = drag_and_drop;
 	}
 }

@@ -14,4 +14,8 @@ public class MailchimpAPIException extends Exception{
         super(jsonObject.toString());
         this.jsonRepresentation = jsonObject;
     }
+
+    public MailchimpAPIException(String message) {
+        super(message);
+    }
 }

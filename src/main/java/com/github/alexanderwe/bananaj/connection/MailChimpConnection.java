@@ -302,71 +302,27 @@ public class MailChimpConnection {
      * @return Arraylist containing all campaigns
      * @throws Exception * TODO add campaignsettings
      */
-    public List<Campaign> getCampaigns() throws Exception {
-
-        List<Campaign> campaigns = new ArrayList<Campaign>();
-        // parse response
-        //JSONObject jsonCampaigns = new JSONObject(do_Get(new URL(campaignendpoint), getApikey()));
-        //JSONArray campaignsArray = jsonCampaigns.getJSONArray("campaigns");
-        /*for (int i = 0; i < campaignsArray.length(); i++) {
-            JSONObject campaignDetail = campaignsArray.getJSONObject(i);
-            Campaign campaign = new Campaign(this, campaignDetail);
-            campaigns.add(campaign);
-    }*/
-        return null;
+    public Campaigns getCampaigns() throws UnirestException, MailchimpAPIException {
+        return HTTPHelper.get(this.getCampaignendpoint(), this.getApikey(), Campaigns.class).getBody();
     }
 
     /**
      * Get a campaign from mailchimp account
      *
-     * @param campaignID
+     * @param campaign_id
      * @return a campaign object
-     * @throws Exception TODO add campaignsettings
      */
-    public Campaign getCampaign(String campaignID) throws Exception {
-        //JSONObject campaign = new JSONObject(do_Get(new URL(campaignendpoint + "/" + campaignID), getApikey()));
-        return null;//new Campaign(this, campaign);
+    public Campaign getCampaign(String campaign_id) throws UnirestException, MailchimpAPIException {
+       return HTTPHelper.get(this.getCampaignendpoint()+"/"+campaign_id, this.getApikey(), Campaign.class).getBody();
     }
 
     /**
      * Create a new campaign in your mailchimp account
      *
-     * @param type
-     * @param mailChimpList
-     * @param settings
+     * @param type Type of the campaign
      */
-    public Campaign createCampaign(CampaignType type, MailChimpList mailChimpList, CampaignSettings settings) throws Exception {
-
-        JSONObject campaign = new JSONObject();
-
-        JSONObject recipients = new JSONObject();
-        recipients.put("list_id", mailChimpList.getId());
-
-        JSONObject jsonSettings = new JSONObject();
-        put(jsonSettings, "subject_line", settings.getSubject_line());
-        put(jsonSettings, "title", settings.getTitle());
-        put(jsonSettings, "to_name", settings.getTo_name());
-        put(jsonSettings, "from_name", settings.getFrom_name());
-        put(jsonSettings, "reply_to", settings.getReply_to());
-        if (settings.getTemplate_id() != 0) {
-            jsonSettings.put("template_id", settings.getTemplate_id());
-        }
-        put(jsonSettings, "auto_footer", settings.getAuto_footer());
-        put(jsonSettings, "use_conversation", settings.getUse_conversation());
-        put(jsonSettings, "authenticate", settings.getAuthenticate());
-        put(jsonSettings, "timewarp", settings.getTimewarp());
-        put(jsonSettings, "auto_tweet", settings.getAuto_tweet());
-        put(jsonSettings, "fb_comments", settings.getFb_comments());
-        put(jsonSettings, "drag_and_drop", settings.getDrag_and_drop());
-        put(jsonSettings, "inline_css", settings.getInline_css());
-        put(jsonSettings, "folder_id", settings.getFolder_id());
-
-        campaign.put("type", type.getStringRepresentation());
-        campaign.put("recipients", recipients);
-        campaign.put("settings", jsonSettings);
-
-        //campaign = new JSONObject(do_Post(new URL(campaignendpoint), campaign.toString(), getApikey()));
-        return new Campaign(this, campaign);
+    public Campaign createCampaign(CampaignType type) throws UnirestException, MailchimpAPIException {
+       return  HTTPHelper.post(this.getCampaignendpoint(), type, this.getApikey(), Campaign.class).getBody();
     }
 
     private JSONObject put(JSONObject settings, String key, String value) {

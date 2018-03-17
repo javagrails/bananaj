@@ -54,6 +54,19 @@ public class HTTPHelper {
         return postResponse;
     }
 
+    public static <T> HttpResponse<T> post(String url, Object o, String authorization,  Class<? extends T> responseClass) throws  MailchimpAPIException, UnirestException{
+        HttpResponse<T> postResponse = Unirest.post(url)
+                .header("Authorization", authorization)
+                .header("accept", "application/json")
+                .header("Content-Type", "application/json")
+                .asObject(responseClass);
+
+        if (postResponse.getStatus() / 100 != 2) {
+            throw new MailchimpAPIException(postResponse.getBody().toString());
+        }
+        return postResponse;
+    }
+
     public static HttpResponse<JsonNode> patch(String url, Object o,  String authorization) throws  MailchimpAPIException, UnirestException{
 
         HttpResponse<JsonNode> patchResponse = Unirest.patch(url)
